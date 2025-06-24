@@ -202,11 +202,23 @@
 
         <!-- Game Master Section -->
         <div id="gamemaster" class="section active">
-            <h2>Training Manager - Hospital Staff Setup</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Training Manager - Hospital Staff Setup</h2>
+                <div>
+                    <button onclick="showSaveScenarioDialog()" style="background-color: #28a745; margin-right: 10px;">Save Scenario</button>
+                    <button onclick="showLoadScenarioDialog()" style="background-color: #007bff;">Load Scenario</button>
+                </div>
+            </div>
+            
+            <!-- Current Scenario Display -->
+            <div id="currentScenario" style="background-color: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px; display: none;">
+                <strong>Current Scenario:</strong> <span id="currentScenarioName">None</span>
+                <small style="margin-left: 10px; color: #6c757d;">(<span id="currentScenarioStaffCount">0</span> staff members)</small>
+            </div>
             <form id="characterForm">
                 <div class="form-group">
-                    <label for="characterName">Staff Member Name:</label>
-                    <input type="text" id="characterName" required>
+                    <label for="characterName">Staff Member Name (optional):</label>
+                    <input type="text" id="characterName" placeholder="Leave blank for anonymous staff member">
                 </div>
                 <div class="form-group">
                     <label for="characterOccupation">Role/Department:</label>
@@ -225,12 +237,51 @@
 
             <div id="characterList" class="character-list"></div>
         </div>
+        
+        <!-- Save Scenario Modal -->
+        <div id="saveScenarioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 400px;">
+                <h3 style="margin-top: 0; color: #333;">Save Scenario</h3>
+                <div style="margin-bottom: 15px;">
+                    <label for="scenarioName" style="color: #333;">Scenario Name:</label>
+                    <input type="text" id="scenarioName" style="width: 100%; margin-top: 5px;" placeholder="Enter scenario name...">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="scenarioDescription" style="color: #333;">Description:</label>
+                    <textarea id="scenarioDescription" style="width: 100%; height: 60px; margin-top: 5px;" placeholder="Brief description of this training scenario..."></textarea>
+                </div>
+                <div style="text-align: right;">
+                    <button onclick="closeSaveScenarioDialog()" style="background-color: #6c757d; margin-right: 10px;">Cancel</button>
+                    <button onclick="saveScenario()" style="background-color: #28a745;">Save</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Load Scenario Modal -->
+        <div id="loadScenarioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 500px; max-height: 70vh; overflow-y: auto;">
+                <h3 style="margin-top: 0; color: #333;">Load Scenario</h3>
+                <div id="scenarioList" style="margin-bottom: 20px;"></div>
+                <div style="text-align: right;">
+                    <button onclick="closeLoadScenarioDialog()" style="background-color: #6c757d;">Cancel</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Player Section -->
         <div id="player" class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>Resident - Quality Improvement Investigation</h2>
-                <button onclick="clearAllConversations()" style="background-color: #dc3545; padding: 8px 16px; font-size: 14px;">Clear All Conversations</button>
+                <div>
+                    <button onclick="showResidentScenarioSelector()" style="background-color: #007bff; margin-right: 10px; padding: 8px 16px; font-size: 14px;">Select Scenario</button>
+                    <button onclick="clearAllConversations()" style="background-color: #dc3545; padding: 8px 16px; font-size: 14px;">Clear All Conversations</button>
+                </div>
+            </div>
+            
+            <!-- Current Scenario Display for Resident -->
+            <div id="residentCurrentScenario" style="background-color: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px; display: none;">
+                <strong>Training Scenario:</strong> <span id="residentScenarioName">None Selected</span>
+                <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 14px;"><span id="residentScenarioDescription">No scenario selected</span></p>
             </div>
             <div class="chat-container">
                 <div class="character-selector">
@@ -254,6 +305,18 @@
             <h2>Investigation Summary</h2>
             <button onclick="loadTranscript()">Refresh Investigation</button>
             <div id="transcriptContent" class="transcript"></div>
+        </div>
+    </div>
+
+        <!-- Resident Scenario Selector Modal -->
+        <div id="residentScenarioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 500px; max-height: 70vh; overflow-y: auto;">
+                <h3 style="margin-top: 0; color: #333;">Select Training Scenario</h3>
+                <div id="residentScenarioList" style="margin-bottom: 20px;"></div>
+                <div style="text-align: right;">
+                    <button onclick="closeResidentScenarioSelector()" style="background-color: #6c757d;">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -1,5 +1,6 @@
 let currentStaff = null;
 let staffMembers = [];
+let currentScenarioId = null;
 
 // Switch between different modes
 function switchMode(mode) {
@@ -57,8 +58,11 @@ async function loadStaffForTrainingManager() {
         staffMembers.forEach(staff => {
             const card = document.createElement('div');
             card.className = 'character-card';
+            const displayName = staff.name.startsWith('Anonymous') ? 
+                `<h3 style="color: #6c757d; font-style: italic;">${staff.name}</h3>` : 
+                `<h3>${staff.name}</h3>`;
             card.innerHTML = `
-                <h3>${staff.name}</h3>
+                ${displayName}
                 <p><strong>Role:</strong> ${staff.occupation}</p>
                 <p><strong>Attitude:</strong> ${staff.attitude}</p>
                 <p><strong>Knowledge:</strong> ${staff.knowledge}</p>
@@ -82,8 +86,11 @@ async function loadStaffMembers() {
         staffMembers.forEach(staff => {
             const option = document.createElement('div');
             option.className = 'character-option';
+            const displayName = staff.name.startsWith('Anonymous') ? 
+                `<strong style="color: #6c757d; font-style: italic;">${staff.name}</strong>` : 
+                `<strong>${staff.name}</strong>`;
             option.innerHTML = `
-                <strong>${staff.name}</strong><br>
+                ${displayName}<br>
                 <small>${staff.occupation}</small>
             `;
             option.onclick = () => selectStaff(staff);
@@ -217,6 +224,261 @@ async function loadTranscript() {
         }
     } catch (error) {
         console.error('Error loading transcript:', error);
+    }
+}
+
+// Scenario Management Functions
+async function showSaveScenarioDialog() {
+    if (staffMembers.length === 0) {
+        alert('Please create some staff members before saving a scenario.');
+        return;
+    }
+    document.getElementById('saveScenarioModal').style.display = 'block';
+}
+
+function closeSaveScenarioDialog() {
+    document.getElementById('saveScenarioModal').style.display = 'none';
+    document.getElementById('scenarioName').value = '';
+    document.getElementById('scenarioDescription').value = '';
+}
+
+async function saveScenario() {
+    const name = document.getElementById('scenarioName').value.trim();
+    const description = document.getElementById('scenarioDescription').value.trim();
+    
+    if (!name) {
+        alert('Please enter a scenario name.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/scenarios', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                name, 
+                description,
+                characters: staffMembers 
+            })
+        });
+        
+        if (response.ok) {
+            const scenario = await response.json();
+            currentScenarioId = scenario.id;
+            updateCurrentScenarioDisplay(scenario);
+            closeSaveScenarioDialog();
+            alert('Scenario saved successfully!');
+        } else {
+            alert('Failed to save scenario.');
+        }
+    } catch (error) {
+        console.error('Error saving scenario:', error);
+        alert('Error saving scenario.');
+    }
+}
+
+async function showLoadScenarioDialog() {
+    document.getElementById('loadScenarioModal').style.display = 'block';
+    await loadScenarioList();
+}
+
+function closeLoadScenarioDialog() {
+    document.getElementById('loadScenarioModal').style.display = 'none';
+}
+
+async function loadScenarioList() {
+    try {
+        const response = await fetch('/api/scenarios');
+        const scenarios = await response.json();
+        
+        const scenarioList = document.getElementById('scenarioList');
+        scenarioList.innerHTML = '';
+        
+        if (scenarios.length === 0) {
+            scenarioList.innerHTML = '<p style="color: #6c757d;">No saved scenarios found.</p>';
+            return;
+        }
+        
+        scenarios.forEach(scenario => {
+            const scenarioCard = document.createElement('div');
+            scenarioCard.style.cssText = 'border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 10px; cursor: pointer;';
+            scenarioCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; color: #333;">${scenario.name}</h4>
+                        <p style="margin: 0 0 5px 0; color: #6c757d; font-size: 14px;">${scenario.description || 'No description'}</p>
+                        <small style="color: #6c757d;">${scenario.characters.length} staff members</small>
+                    </div>
+                    <div>
+                        <button onclick="loadScenario('${scenario.id}')" style="background-color: #007bff; margin-right: 5px; font-size: 12px; padding: 5px 10px;">Load</button>
+                        <button onclick="deleteScenario('${scenario.id}')" style="background-color: #dc3545; font-size: 12px; padding: 5px 10px;">Delete</button>
+                    </div>
+                </div>
+            `;
+            scenarioList.appendChild(scenarioCard);
+        });
+    } catch (error) {
+        console.error('Error loading scenarios:', error);
+    }
+}
+
+async function loadScenario(scenarioId) {
+    try {
+        const response = await fetch(`/api/scenarios/${scenarioId}`);
+        const scenario = await response.json();
+        
+        if (response.ok) {
+            // Clear current data
+            await fetch('/api/conversations/clear', { method: 'POST' });
+            
+            // Load scenario characters
+            staffMembers = scenario.characters;
+            currentScenarioId = scenario.id;
+            
+            // Update displays
+            updateCurrentScenarioDisplay(scenario);
+            loadStaffForTrainingManager();
+            
+            closeLoadScenarioDialog();
+            alert(`Scenario "${scenario.name}" loaded successfully!`);
+        } else {
+            alert('Failed to load scenario.');
+        }
+    } catch (error) {
+        console.error('Error loading scenario:', error);
+        alert('Error loading scenario.');
+    }
+}
+
+async function deleteScenario(scenarioId) {
+    if (!confirm('Are you sure you want to delete this scenario? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/scenarios/${scenarioId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadScenarioList();
+            if (currentScenarioId === scenarioId) {
+                currentScenarioId = null;
+                updateCurrentScenarioDisplay(null);
+            }
+        } else {
+            alert('Failed to delete scenario.');
+        }
+    } catch (error) {
+        console.error('Error deleting scenario:', error);
+        alert('Error deleting scenario.');
+    }
+}
+
+// Resident scenario selection
+async function showResidentScenarioSelector() {
+    document.getElementById('residentScenarioModal').style.display = 'block';
+    await loadResidentScenarioList();
+}
+
+function closeResidentScenarioSelector() {
+    document.getElementById('residentScenarioModal').style.display = 'none';
+}
+
+async function loadResidentScenarioList() {
+    try {
+        const response = await fetch('/api/scenarios');
+        const scenarios = await response.json();
+        
+        const scenarioList = document.getElementById('residentScenarioList');
+        scenarioList.innerHTML = '';
+        
+        if (scenarios.length === 0) {
+            scenarioList.innerHTML = '<p style="color: #6c757d;">No training scenarios available. Please ask your training manager to create some scenarios.</p>';
+            return;
+        }
+        
+        scenarios.forEach(scenario => {
+            const scenarioCard = document.createElement('div');
+            scenarioCard.style.cssText = 'border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 10px; cursor: pointer;';
+            scenarioCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; color: #333;">${scenario.name}</h4>
+                        <p style="margin: 0 0 5px 0; color: #6c757d; font-size: 14px;">${scenario.description || 'No description'}</p>
+                        <small style="color: #6c757d;">${scenario.characters.length} staff members to interview</small>
+                    </div>
+                    <div>
+                        <button onclick="selectResidentScenario('${scenario.id}')" style="background-color: #007bff; font-size: 12px; padding: 5px 15px;">Select</button>
+                    </div>
+                </div>
+            `;
+            scenarioList.appendChild(scenarioCard);
+        });
+    } catch (error) {
+        console.error('Error loading scenarios:', error);
+    }
+}
+
+async function selectResidentScenario(scenarioId) {
+    try {
+        const response = await fetch(`/api/scenarios/${scenarioId}`);
+        const scenario = await response.json();
+        
+        if (response.ok) {
+            // Clear current conversations
+            await fetch('/api/conversations/clear', { method: 'POST' });
+            
+            // Load scenario for resident
+            staffMembers = scenario.characters;
+            currentScenarioId = scenario.id;
+            
+            // Update displays
+            updateResidentScenarioDisplay(scenario);
+            loadStaffMembers();
+            
+            // Clear chat area
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '<p>Select a staff member to interview about the quality issue...</p>';
+            currentStaff = null;
+            
+            closeResidentScenarioSelector();
+        } else {
+            alert('Failed to load scenario.');
+        }
+    } catch (error) {
+        console.error('Error loading scenario:', error);
+        alert('Error loading scenario.');
+    }
+}
+
+function updateCurrentScenarioDisplay(scenario) {
+    const display = document.getElementById('currentScenario');
+    const nameSpan = document.getElementById('currentScenarioName');
+    const countSpan = document.getElementById('currentScenarioStaffCount');
+    
+    if (scenario) {
+        nameSpan.textContent = scenario.name;
+        countSpan.textContent = scenario.characters.length;
+        display.style.display = 'block';
+    } else {
+        display.style.display = 'none';
+    }
+}
+
+function updateResidentScenarioDisplay(scenario) {
+    const display = document.getElementById('residentCurrentScenario');
+    const nameSpan = document.getElementById('residentScenarioName');
+    const descSpan = document.getElementById('residentScenarioDescription');
+    
+    if (scenario) {
+        nameSpan.textContent = scenario.name;
+        descSpan.textContent = scenario.description || 'No description available';
+        display.style.display = 'block';
+    } else {
+        display.style.display = 'none';
     }
 }
 

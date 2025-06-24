@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Murder Mystery Game</title>
+    <title>Quality Improvement Training</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #1a1a1a;
-            color: #fff;
+            background-color: #f8f9fa;
+            color: #333;
         }
         .container {
             max-width: 1200px;
@@ -27,7 +27,7 @@
         .mode-btn {
             padding: 10px 20px;
             margin: 0 10px;
-            background-color: #444;
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
@@ -35,11 +35,13 @@
             font-size: 16px;
         }
         .mode-btn.active {
-            background-color: #666;
+            background-color: #0056b3;
         }
         .section {
             display: none;
-            background-color: #2a2a2a;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
@@ -58,10 +60,10 @@
         input, textarea, select {
             width: 100%;
             padding: 8px;
-            border: 1px solid #555;
+            border: 1px solid #ced4da;
             border-radius: 4px;
-            background-color: #333;
-            color: white;
+            background-color: #ffffff;
+            color: #333;
             font-size: 14px;
         }
         textarea {
@@ -69,7 +71,7 @@
             resize: vertical;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #28a745;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -78,7 +80,7 @@
             font-size: 16px;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #218838;
         }
         .character-list {
             display: grid;
@@ -87,14 +89,14 @@
             margin-top: 20px;
         }
         .character-card {
-            background-color: #333;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid #555;
         }
         .character-card h3 {
             margin: 0 0 10px 0;
-            color: #4CAF50;
+            color: #007bff;
         }
         .character-card p {
             margin: 5px 0;
@@ -107,7 +109,8 @@
         }
         .character-selector {
             width: 300px;
-            background-color: #333;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
             padding: 15px;
             border-radius: 8px;
             overflow-y: auto;
@@ -115,16 +118,17 @@
         .character-option {
             padding: 10px;
             margin-bottom: 10px;
-            background-color: #444;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
             border-radius: 5px;
             cursor: pointer;
             border: 2px solid transparent;
         }
         .character-option:hover {
-            background-color: #555;
+            background-color: #e9ecef;
         }
         .character-option.selected {
-            border-color: #4CAF50;
+            border-color: #007bff;
         }
         .chat-area {
             flex: 1;
@@ -133,7 +137,8 @@
         }
         .chat-messages {
             flex: 1;
-            background-color: #333;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
             padding: 15px;
             border-radius: 8px;
             overflow-y: auto;
@@ -145,13 +150,14 @@
             border-radius: 5px;
         }
         .message.user {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
             text-align: right;
         }
         .message.assistant {
-            background-color: #555;
-            color: white;
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #dee2e6;
         }
         .chat-input {
             display: flex;
@@ -161,7 +167,8 @@
             flex: 1;
         }
         .transcript {
-            background-color: #333;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
             padding: 15px;
             border-radius: 8px;
             max-height: 500px;
@@ -170,45 +177,50 @@
         .transcript-character {
             margin-bottom: 20px;
             padding: 10px;
-            background-color: #444;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
             border-radius: 5px;
         }
         .transcript-character h4 {
             margin: 0 0 10px 0;
-            color: #4CAF50;
+            color: #007bff;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 Murder Mystery Game</h1>
-            <p>Create characters and interrogate suspects to solve the case</p>
+            <h1>🏥 Quality Improvement Training</h1>
+            <p>Interview hospital staff to investigate quality improvement opportunities</p>
         </div>
 
         <div class="mode-selector">
-            <button class="mode-btn active" onclick="switchMode('gamemaster')">Game Master</button>
-            <button class="mode-btn" onclick="switchMode('player')">Player</button>
-            <button class="mode-btn" onclick="switchMode('transcript')">Transcript</button>
+            <button class="mode-btn active" onclick="switchMode('gamemaster')">Training Manager</button>
+            <button class="mode-btn" onclick="switchMode('player')">Resident</button>
+            <button class="mode-btn" onclick="switchMode('transcript')">Summary</button>
         </div>
 
         <!-- Game Master Section -->
         <div id="gamemaster" class="section active">
-            <h2>Game Master - Character Creation</h2>
+            <h2>Training Manager - Hospital Staff Setup</h2>
             <form id="characterForm">
                 <div class="form-group">
-                    <label for="characterName">Character Name:</label>
+                    <label for="characterName">Staff Member Name:</label>
                     <input type="text" id="characterName" required>
                 </div>
                 <div class="form-group">
-                    <label for="characterOccupation">Occupation:</label>
+                    <label for="characterOccupation">Role/Department:</label>
                     <input type="text" id="characterOccupation" required>
                 </div>
                 <div class="form-group">
-                    <label for="characterKnowledge">Knowledge & Information:</label>
-                    <textarea id="characterKnowledge" placeholder="What does this character know? What information can they reveal during interviews? Be specific about what they can and cannot say." required></textarea>
+                    <label for="characterAttitude">Attitude/Personality:</label>
+                    <textarea id="characterAttitude" placeholder="How does this staff member behave during interviews? Are they helpful, defensive, busy, grumpy, professional, etc.? Describe their communication style and demeanor." required></textarea>
                 </div>
-                <button type="submit">Create Character</button>
+                <div class="form-group">
+                    <label for="characterKnowledge">Knowledge & Information:</label>
+                    <textarea id="characterKnowledge" placeholder="What does this staff member know about the quality issue being investigated? What specific information and insights can they share during interviews? Be specific about what they can and cannot reveal." required></textarea>
+                </div>
+                <button type="submit">Add Staff Member</button>
             </form>
 
             <div id="characterList" class="character-list"></div>
@@ -216,18 +228,21 @@
 
         <!-- Player Section -->
         <div id="player" class="section">
-            <h2>Player - Investigation</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Resident - Quality Improvement Investigation</h2>
+                <button onclick="clearAllConversations()" style="background-color: #dc3545; padding: 8px 16px; font-size: 14px;">Clear All Conversations</button>
+            </div>
             <div class="chat-container">
                 <div class="character-selector">
-                    <h3>Available Characters</h3>
+                    <h3>Hospital Staff</h3>
                     <div id="characterOptions"></div>
                 </div>
                 <div class="chat-area">
                     <div id="chatMessages" class="chat-messages">
-                        <p>Select a character to begin your investigation...</p>
+                        <p>Select a staff member to interview about the quality issue...</p>
                     </div>
                     <div class="chat-input">
-                        <input type="text" id="messageInput" placeholder="Ask your question...">
+                        <input type="text" id="messageInput" placeholder="Ask about processes and quality issues...">
                         <button onclick="sendMessage()">Send</button>
                     </div>
                 </div>
@@ -236,8 +251,8 @@
 
         <!-- Transcript Section -->
         <div id="transcript" class="section">
-            <h2>Investigation Transcript</h2>
-            <button onclick="loadTranscript()">Refresh Transcript</button>
+            <h2>Investigation Summary</h2>
+            <button onclick="loadTranscript()">Refresh Investigation</button>
             <div id="transcriptContent" class="transcript"></div>
         </div>
     </div>

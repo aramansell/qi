@@ -1,14 +1,14 @@
-# Murder Mystery Game (Qi)
+# Quality Improvement Training (Qi)
 
-A Node.js-based murder mystery game where a game master can create AI-powered characters and players can interview them to solve the case.
+A Node.js-based quality improvement training simulation for hospital residents where a training manager can create AI-powered hospital staff members and residents can interview them to investigate quality improvement opportunities.
 
 ## Features
 
-- **Game Master Interface**: Create characters with specific knowledge and backstories
-- **Player Interface**: Chat with AI-powered characters to gather clues
+- **Training Manager Interface**: Create hospital staff members with specific knowledge about quality issues
+- **Resident Interface**: Interview AI-powered staff members to investigate quality improvement opportunities
 - **Conversation History**: All interactions are tracked and saved
-- **Transcript View**: Review all conversations across all characters
-- **OpenAI Integration**: Characters respond intelligently while staying in character
+- **Investigation Summary**: Review all interviews across all staff members
+- **OpenAI Integration**: Staff members respond intelligently while staying in character
 
 ## Setup
 
@@ -20,8 +20,13 @@ A Node.js-based murder mystery game where a game master can create AI-powered ch
 2. Set up your OpenAI API key:
    ```bash
    cp .env.example .env
-   # Edit .env and add your OpenAI API key
    ```
+   Then edit the `.env` file and replace `your_openai_api_key_here` with your actual OpenAI API key.
+   
+   To get an OpenAI API key:
+   - Go to https://platform.openai.com/api-keys
+   - Create a new API key
+   - Copy it to your `.env` file
 
 3. Start the server:
    ```bash
@@ -30,25 +35,27 @@ A Node.js-based murder mystery game where a game master can create AI-powered ch
 
 4. Open your browser to `http://localhost:3000`
 
-## How to Play
+## How to Use
 
-### Game Master Mode
-1. Switch to "Game Master" mode
-2. Create characters by filling out:
-   - Character Name
-   - Occupation
-   - Knowledge (what they know and can reveal)
-3. Each character will only reveal information from their knowledge section
+### Training Manager Mode
+1. Switch to "Training Manager" mode
+2. Create hospital staff members by filling out:
+   - Staff Member Name
+   - Role/Department (any hospital role relevant to your scenario)
+   - Attitude/Personality (how they behave and communicate during interviews)
+   - Knowledge (what they know about the quality issue being investigated)
+3. Each staff member will only reveal information from their knowledge section
 
-### Player Mode
-1. Switch to "Player" mode
-2. Select a character from the list to interview
-3. Chat with them to gather information
-4. Switch between characters at any time
-5. Each character maintains their own conversation history
+### Resident Mode
+1. Switch to "Resident" mode
+2. Select a staff member from the list to interview
+3. Ask questions about processes and quality issues
+4. Switch between staff members at any time
+5. Each staff member maintains their own conversation history
+6. Use "Clear All Conversations" button to reset all interview data (keeps staff members)
 
-### Transcript Mode
-View all conversations organized by character to review gathered information.
+### Summary Mode
+View all interviews organized by staff member to review gathered information and identify quality improvement opportunities.
 
 ## Environment Variables
 
@@ -56,8 +63,8 @@ View all conversations organized by character to review gathered information.
 
 ## API Endpoints
 
-- `GET /api/characters` - Get all characters
-- `POST /api/characters` - Create a new character
-- `GET /api/conversations/:characterId` - Get conversation history for a character
-- `POST /api/chat/:characterId` - Send a message to a character
-- `GET /api/transcript` - Get full transcript of all conversations
+- `GET /api/characters` - Get all staff members
+- `POST /api/characters` - Create a new staff member
+- `GET /api/conversations/:characterId` - Get conversation history for a staff member
+- `POST /api/chat/:characterId` - Send a message to a staff member
+- `GET /api/transcript` - Get full transcript of all interviews

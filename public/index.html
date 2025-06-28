@@ -4,321 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quality Improvement Training</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .mode-selector {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .mode-btn {
-            padding: 10px 20px;
-            margin: 0 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .mode-btn.active {
-            background-color: #0056b3;
-        }
-        .section {
-            display: none;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .section.active {
-            display: block;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            background-color: #ffffff;
-            color: #333;
-            font-size: 14px;
-        }
-        textarea {
-            height: 100px;
-            resize: vertical;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .character-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .character-card {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .character-card h3 {
-            margin: 0 0 10px 0;
-            color: #007bff;
-        }
-        .character-card p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        .chat-container {
-            display: flex;
-            gap: 20px;
-            height: 600px;
-        }
-        .character-selector {
-            width: 300px;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-y: auto;
-        }
-        .character-option {
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        .character-option:hover {
-            background-color: #e9ecef;
-        }
-        .character-option.selected {
-            border-color: #007bff;
-        }
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-messages {
-            flex: 1;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .message.user {
-            background-color: #007bff;
-            color: white;
-            text-align: right;
-        }
-        .message.assistant {
-            background-color: #f8f9fa;
-            color: #333;
-            border: 1px solid #dee2e6;
-        }
-        .chat-input {
-            display: flex;
-            gap: 10px;
-        }
-        .chat-input input {
-            flex: 1;
-        }
-        .transcript {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            border-radius: 8px;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        .transcript-character {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-        }
-        .transcript-character h4 {
-            margin: 0 0 10px 0;
-            color: #007bff;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="medical-style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏥 Quality Improvement Training</h1>
-            <p>Interview hospital staff to investigate quality improvement opportunities</p>
-        </div>
+    <main>
+        <!-- Single Chat Interface -->
+        <div class="chat-interface">
+            <!-- Scenario Selection Header -->
+            <div class="scenario-header">
+                <div class="scenario-info">
+                    <h2 id="current-scenario-name">Select a Scenario</h2>
+                    <p id="current-scenario-description">Choose a training scenario to begin interviewing staff</p>
+                </div>
+                <div class="scenario-actions">
+                    <button data-primary onclick="showScenarioSelector()" id="change-scenario-btn">
+                        <i class="fas fa-exchange-alt"></i>
+                        Change Scenario
+                    </button>
+                    <button data-danger onclick="clearAllConversations()" id="clear-chat-btn" style="display: none;">
+                        <i class="fas fa-redo"></i>
+                        Clear Chat
+                    </button>
+                </div>
+            </div>
 
-        <div class="mode-selector">
-            <button class="mode-btn active" onclick="switchMode('gamemaster')">Training Manager</button>
-            <button class="mode-btn" onclick="switchMode('player')">Resident</button>
-            <button class="mode-btn" onclick="switchMode('transcript')">Summary</button>
-        </div>
+            <!-- Main Chat Container -->
+            <div class="main-chat-container">
+                <!-- Staff Selection Panel -->
+                <div class="staff-panel">
+                    <h3><i class="fas fa-users"></i> Hospital Staff</h3>
+                    <div id="staff-list">
+                        <!-- Staff members will be populated here -->
+                    </div>
+                </div>
 
-        <!-- Game Master Section -->
-        <div id="gamemaster" class="section active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>Training Manager - Hospital Staff Setup</h2>
-                <div>
-                    <button onclick="showSaveScenarioDialog()" style="background-color: #28a745; margin-right: 10px;">Save Scenario</button>
-                    <button onclick="showLoadScenarioDialog()" style="background-color: #007bff;">Load Scenario</button>
-                </div>
-            </div>
-            
-            <!-- Current Scenario Display -->
-            <div id="currentScenario" style="background-color: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px; display: none;">
-                <strong>Current Scenario:</strong> <span id="currentScenarioName">None</span>
-                <small style="margin-left: 10px; color: #6c757d;">(<span id="currentScenarioStaffCount">0</span> staff members)</small>
-            </div>
-            <form id="characterForm">
-                <div class="form-group">
-                    <label for="characterName">Staff Member Name (optional):</label>
-                    <input type="text" id="characterName" placeholder="Leave blank for anonymous staff member">
-                </div>
-                <div class="form-group">
-                    <label for="characterOccupation">Role/Department:</label>
-                    <input type="text" id="characterOccupation" required>
-                </div>
-                <div class="form-group">
-                    <label for="characterAttitude">Attitude/Personality:</label>
-                    <textarea id="characterAttitude" placeholder="How does this staff member behave during interviews? Are they helpful, defensive, busy, grumpy, professional, etc.? Describe their communication style and demeanor." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="characterKnowledge">Knowledge & Information:</label>
-                    <textarea id="characterKnowledge" placeholder="What does this staff member know about the quality issue being investigated? What specific information and insights can they share during interviews? Be specific about what they can and cannot reveal." required></textarea>
-                </div>
-                <button type="submit">Add Staff Member</button>
-            </form>
-
-            <div id="characterList" class="character-list"></div>
-        </div>
-        
-        <!-- Save Scenario Modal -->
-        <div id="saveScenarioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 400px;">
-                <h3 style="margin-top: 0; color: #333;">Save Scenario</h3>
-                <div style="margin-bottom: 15px;">
-                    <label for="scenarioName" style="color: #333;">Scenario Name:</label>
-                    <input type="text" id="scenarioName" style="width: 100%; margin-top: 5px;" placeholder="Enter scenario name...">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="scenarioDescription" style="color: #333;">Description:</label>
-                    <textarea id="scenarioDescription" style="width: 100%; height: 60px; margin-top: 5px;" placeholder="Brief description of this training scenario..."></textarea>
-                </div>
-                <div style="text-align: right;">
-                    <button onclick="closeSaveScenarioDialog()" style="background-color: #6c757d; margin-right: 10px;">Cancel</button>
-                    <button onclick="saveScenario()" style="background-color: #28a745;">Save</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Load Scenario Modal -->
-        <div id="loadScenarioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 500px; max-height: 70vh; overflow-y: auto;">
-                <h3 style="margin-top: 0; color: #333;">Load Scenario</h3>
-                <div id="scenarioList" style="margin-bottom: 20px;"></div>
-                <div style="text-align: right;">
-                    <button onclick="closeLoadScenarioDialog()" style="background-color: #6c757d;">Cancel</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Player Section -->
-        <div id="player" class="section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>Resident - Quality Improvement Investigation</h2>
-                <div>
-                    <button onclick="showResidentScenarioSelector()" style="background-color: #007bff; margin-right: 10px; padding: 8px 16px; font-size: 14px;">Select Scenario</button>
-                    <button onclick="clearAllConversations()" style="background-color: #dc3545; padding: 8px 16px; font-size: 14px;">Clear All Conversations</button>
-                </div>
-            </div>
-            
-            <!-- Current Scenario Display for Resident -->
-            <div id="residentCurrentScenario" style="background-color: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px; display: none;">
-                <strong>Training Scenario:</strong> <span id="residentScenarioName">None Selected</span>
-                <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 14px;"><span id="residentScenarioDescription">No scenario selected</span></p>
-            </div>
-            <div class="chat-container">
-                <div class="character-selector">
-                    <h3>Hospital Staff</h3>
-                    <div id="characterOptions"></div>
-                </div>
+                <!-- Chat Area -->
                 <div class="chat-area">
-                    <div id="chatMessages" class="chat-messages">
-                        <p>Select a staff member to interview about the quality issue...</p>
+                    <div class="chat-header" id="chat-header">
+                        <span>Select a staff member to begin interview</span>
                     </div>
-                    <div class="chat-input">
-                        <input type="text" id="messageInput" placeholder="Ask about processes and quality issues...">
-                        <button onclick="sendMessage()">Send</button>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="chat-placeholder">
+                            <i class="fas fa-comments"></i>
+                            <p>Select a staff member from the left panel to start the interview</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="chat-input-group">
+                            <input type="text" class="chat-input" id="message-input" 
+                                   placeholder="Ask about processes and quality issues..."
+                                   onkeypress="handleChatKeyPress(event)"
+                                   disabled>
+                            <button data-primary onclick="sendMessage()" id="send-btn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                                Send
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
 
-        <!-- Transcript Section -->
-        <div id="transcript" class="section">
-            <h2>Investigation Summary</h2>
-            <button onclick="loadTranscript()">Refresh Investigation</button>
-            <div id="transcriptContent" class="transcript"></div>
-        </div>
-    </div>
-
-        <!-- Resident Scenario Selector Modal -->
-        <div id="residentScenarioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 500px; max-height: 70vh; overflow-y: auto;">
-                <h3 style="margin-top: 0; color: #333;">Select Training Scenario</h3>
-                <div id="residentScenarioList" style="margin-bottom: 20px;"></div>
-                <div style="text-align: right;">
-                    <button onclick="closeResidentScenarioSelector()" style="background-color: #6c757d;">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Modals -->
+    <div id="modal-container"></div>
 
     <script src="script.js"></script>
 </body>

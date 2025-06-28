@@ -1,492 +1,331 @@
-let currentStaff = null;
-let staffMembers = [];
-let currentScenarioId = null;
+// Global state management for single chat interface
+let state = {
+    currentScenario: null,
+    staffMembers: [],
+    currentStaff: null,
+    allMessages: [], // All messages in chronological order with staff identification
+    isLoading: false,
+    apiKey: null // Store API key from URL
+};
 
-// Switch between different modes
-function switchMode(mode) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(mode).classList.add('active');
-    event.target.classList.add('active');
-    
-    if (mode === 'player') {
-        loadStaffMembers();
-    } else if (mode === 'transcript') {
-        loadTranscript();
-    }
+// Utility functions
+function generateId() {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
 
-// Game Master Functions
-document.getElementById('characterForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+// Initialize application
+document.addEventListener('DOMContentLoaded', async () => {
+    // Extract API key from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    state.apiKey = urlParams.get('apikey');
     
-    const name = document.getElementById('characterName').value;
-    const occupation = document.getElementById('characterOccupation').value;
-    const attitude = document.getElementById('characterAttitude').value;
-    const knowledge = document.getElementById('characterKnowledge').value;
-    
-    try {
-        const response = await fetch('/api/characters', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name, occupation, attitude, knowledge })
-        });
-        
-        if (response.ok) {
-            document.getElementById('characterForm').reset();
-            loadStaffForTrainingManager();
-        } else {
-            alert('Failed to add staff member');
-        }
-    } catch (error) {
-        console.error('Error adding staff member:', error);
-        alert('Error adding staff member');
+    if (!state.apiKey) {
+        showAlert('API Key required. Please add ?apikey=your_openai_key to the URL', 'error');
     }
+    
+    await loadScenarios();
+    initializeInterface();
+    console.log('Quality Improvement Training - Single Chat Interface initialized');
 });
 
-async function loadStaffForTrainingManager() {
+// Load available scenarios
+async function loadScenarios() {
     try {
-        const response = await fetch('/api/characters');
-        staffMembers = await response.json();
+        const response = await fetch('/api/scenarios');
+        const scenarios = await response.json();
         
-        const characterList = document.getElementById('characterList');
-        characterList.innerHTML = '';
-        
-        staffMembers.forEach(staff => {
-            const card = document.createElement('div');
-            card.className = 'character-card';
-            const displayName = staff.name.startsWith('Anonymous') ? 
-                `<h3 style="color: #6c757d; font-style: italic;">${staff.name}</h3>` : 
-                `<h3>${staff.name}</h3>`;
-            card.innerHTML = `
-                ${displayName}
-                <p><strong>Role:</strong> ${staff.occupation}</p>
-                <p><strong>Attitude:</strong> ${staff.attitude}</p>
-                <p><strong>Knowledge:</strong> ${staff.knowledge}</p>
-            `;
-            characterList.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Error loading staff members:', error);
-    }
-}
-
-// Player Functions
-async function loadStaffMembers() {
-    try {
-        const response = await fetch('/api/characters');
-        staffMembers = await response.json();
-        
-        const characterOptions = document.getElementById('characterOptions');
-        characterOptions.innerHTML = '';
-        
-        staffMembers.forEach(staff => {
-            const option = document.createElement('div');
-            option.className = 'character-option';
-            const displayName = staff.name.startsWith('Anonymous') ? 
-                `<strong style="color: #6c757d; font-style: italic;">${staff.name}</strong>` : 
-                `<strong>${staff.name}</strong>`;
-            option.innerHTML = `
-                ${displayName}<br>
-                <small>${staff.occupation}</small>
-            `;
-            option.onclick = () => selectStaff(staff);
-            characterOptions.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading staff members:', error);
-    }
-}
-
-async function selectStaff(staff) {
-    currentStaff = staff;
-    
-    // Update UI
-    document.querySelectorAll('.character-option').forEach(o => o.classList.remove('selected'));
-    event.target.classList.add('selected');
-    
-    // Load conversation history
-    try {
-        const response = await fetch(`/api/conversations/${staff.id}`);
-        const conversation = await response.json();
-        
-        const chatMessages = document.getElementById('chatMessages');
-        chatMessages.innerHTML = `<p><strong>Now interviewing ${staff.name} (${staff.occupation})</strong></p>`;
-        
-        conversation.forEach(message => {
-            if (message.role !== 'system') {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${message.role}`;
-                messageDiv.textContent = message.content;
-                chatMessages.appendChild(messageDiv);
-            }
-        });
-        
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    } catch (error) {
-        console.error('Error loading conversation:', error);
-    }
-}
-
-async function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value.trim();
-    
-    if (!message || !currentStaff) {
-        if (!currentStaff) {
-            alert('Please select a staff member to interview first');
+        if (scenarios.length > 0) {
+            // Auto-select first scenario if available
+            await selectScenario(scenarios[0].id);
         }
+    } catch (error) {
+        console.error('Error loading scenarios:', error);
+        showAlert('Error loading scenarios', 'error');
+    }
+}
+
+// Select and load a scenario
+async function selectScenario(scenarioId) {
+    try {
+        const response = await fetch(`/api/scenarios/${scenarioId}`);
+        if (response.ok) {
+            const scenario = await response.json();
+            state.currentScenario = scenario;
+            state.staffMembers = [...scenario.characters];
+            state.currentStaff = null;
+            state.allMessages = [];
+            
+            updateScenarioHeader();
+            renderStaffList();
+            renderChatArea();
+            
+            // Show clear chat button if scenario is loaded
+            document.getElementById('clear-chat-btn').style.display = scenario.characters.length > 0 ? 'block' : 'none';
+            
+            showAlert(`Scenario "${scenario.name}" loaded successfully!`, 'success');
+        } else {
+            showAlert('Failed to load scenario', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading scenario:', error);
+        showAlert('Error loading scenario', 'error');
+    }
+}
+
+// Update scenario header
+function updateScenarioHeader() {
+    const nameEl = document.getElementById('current-scenario-name');
+    const descEl = document.getElementById('current-scenario-description');
+    
+    if (state.currentScenario) {
+        nameEl.textContent = state.currentScenario.name;
+        descEl.textContent = state.currentScenario.description || 'Interview hospital staff to investigate quality improvement opportunities';
+    } else {
+        nameEl.textContent = 'Select a Scenario';
+        descEl.textContent = 'Choose a training scenario to begin interviewing staff';
+    }
+}
+
+// Render staff list
+function renderStaffList() {
+    const staffList = document.getElementById('staff-list');
+    
+    if (!state.currentScenario || state.staffMembers.length === 0) {
+        staffList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-user-md"></i>
+                <h3>No staff available</h3>
+                <p>Please select a scenario with staff members</p>
+            </div>
+        `;
         return;
     }
     
-    // Add user message to chat
-    const chatMessages = document.getElementById('chatMessages');
-    const userMessage = document.createElement('div');
-    userMessage.className = 'message user';
-    userMessage.textContent = message;
-    chatMessages.appendChild(userMessage);
+    staffList.innerHTML = state.staffMembers.map(staff => `
+        <div class="staff-item ${state.currentStaff?.id === staff.id ? 'selected' : ''}" 
+             onclick="selectStaff('${staff.id}')">
+            <div class="staff-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="staff-info">
+                <div class="staff-name ${staff.name.startsWith('Anonymous') ? 'anonymous' : ''}">${staff.name}</div>
+                <div class="staff-role">${staff.occupation}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Select a staff member
+function selectStaff(staffId) {
+    const staff = state.staffMembers.find(s => s.id === staffId);
+    if (!staff) return;
     
+    state.currentStaff = staff;
+    renderStaffList(); // Update selection
+    renderChatArea(); // Update chat header and enable input
+}
+
+// Render chat area
+function renderChatArea() {
+    const chatHeader = document.getElementById('chat-header');
+    const chatMessages = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    
+    if (!state.currentStaff) {
+        chatHeader.innerHTML = '<span>Select a staff member to begin interview</span>';
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+        
+        if (state.allMessages.length === 0) {
+            chatMessages.innerHTML = `
+                <div class="chat-placeholder">
+                    <i class="fas fa-comments"></i>
+                    <p>Select a staff member from the left panel to start the interview</p>
+                </div>
+            `;
+        } else {
+            renderAllMessages();
+        }
+    } else {
+        chatHeader.innerHTML = `<span>Now interviewing ${state.currentStaff.name} (${state.currentStaff.occupation})</span>`;
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        renderAllMessages();
+    }
+}
+
+// Render all messages in chronological order
+function renderAllMessages() {
+    const chatMessages = document.getElementById('chat-messages');
+    
+    if (state.allMessages.length === 0) {
+        chatMessages.innerHTML = `
+            <div class="chat-placeholder">
+                <i class="fas fa-comments"></i>
+                <p>Start the conversation by asking a question</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = state.allMessages.map(message => {
+        const staffName = message.staffName || 'Unknown Staff';
+        const staffTag = message.role === 'assistant' ? 
+            `<div class="message-staff-tag">${staffName}</div>` : '';
+        
+        return `
+            <div class="chat-message ${message.role}">
+                ${staffTag}
+                ${message.content}
+            </div>
+        `;
+    }).join('');
+    
+    if (state.isLoading) {
+        html += `
+            <div class="chat-message assistant">
+                <div class="message-staff-tag">${state.currentStaff?.name || 'Staff'}</div>
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+                <span style="margin-left: 8px; color: #718096;">Typing...</span>
+            </div>
+        `;
+    }
+    
+    chatMessages.innerHTML = html;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Handle chat input key press
+function handleChatKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+// Send message
+async function sendMessage() {
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+    
+    if (!message || !state.currentStaff || state.isLoading) return;
+    
+    // Add user message to all messages
+    const userMessage = {
+        role: 'user',
+        content: message,
+        staffId: state.currentStaff.id,
+        staffName: state.currentStaff.name,
+        timestamp: new Date().toISOString()
+    };
+    
+    state.allMessages.push(userMessage);
     messageInput.value = '';
+    state.isLoading = true;
+    
+    renderAllMessages();
     
     try {
-        const response = await fetch(`/api/chat/${currentStaff.id}`, {
+        const response = await fetch(`/api/chat/${state.currentStaff.id}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, apiKey: state.apiKey })
         });
         
         const data = await response.json();
         
         if (response.ok) {
-            const aiMessage = document.createElement('div');
-            aiMessage.className = 'message assistant';
-            aiMessage.textContent = data.response;
-            chatMessages.appendChild(aiMessage);
+            const aiMessage = {
+                role: 'assistant',
+                content: data.response,
+                staffId: state.currentStaff.id,
+                staffName: state.currentStaff.name,
+                timestamp: new Date().toISOString()
+            };
+            state.allMessages.push(aiMessage);
         } else {
-            const errorMessage = document.createElement('div');
-            errorMessage.className = 'message assistant';
-            errorMessage.textContent = 'Error: ' + (data.error || 'Failed to get response');
-            chatMessages.appendChild(errorMessage);
+            const errorMessage = {
+                role: 'assistant',
+                content: 'Error: ' + (data.error || 'Failed to get response'),
+                staffId: state.currentStaff.id,
+                staffName: state.currentStaff.name,
+                timestamp: new Date().toISOString()
+            };
+            state.allMessages.push(errorMessage);
         }
-        
-        chatMessages.scrollTop = chatMessages.scrollHeight;
     } catch (error) {
         console.error('Error sending message:', error);
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'message assistant';
-        errorMessage.textContent = 'Error: Failed to send message';
-        chatMessages.appendChild(errorMessage);
-    }
-}
-
-// Allow Enter key to send message
-document.getElementById('messageInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
-
-// Transcript Functions
-async function loadTranscript() {
-    try {
-        const response = await fetch('/api/transcript');
-        const transcript = await response.json();
-        
-        const transcriptContent = document.getElementById('transcriptContent');
-        transcriptContent.innerHTML = '';
-        
-        if (Object.keys(transcript).length === 0) {
-            transcriptContent.innerHTML = '<p>No conversations yet.</p>';
-            return;
-        }
-        
-        for (const [staffName, messages] of Object.entries(transcript)) {
-            const staffSection = document.createElement('div');
-            staffSection.className = 'transcript-character';
-            
-            const staffTitle = document.createElement('h4');
-            staffTitle.textContent = `Interview with ${staffName}`;
-            staffSection.appendChild(staffTitle);
-            
-            messages.forEach(message => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${message.role}`;
-                messageDiv.textContent = message.content;
-                staffSection.appendChild(messageDiv);
-            });
-            
-            transcriptContent.appendChild(staffSection);
-        }
-    } catch (error) {
-        console.error('Error loading transcript:', error);
-    }
-}
-
-// Scenario Management Functions
-async function showSaveScenarioDialog() {
-    if (staffMembers.length === 0) {
-        alert('Please create some staff members before saving a scenario.');
-        return;
-    }
-    document.getElementById('saveScenarioModal').style.display = 'block';
-}
-
-function closeSaveScenarioDialog() {
-    document.getElementById('saveScenarioModal').style.display = 'none';
-    document.getElementById('scenarioName').value = '';
-    document.getElementById('scenarioDescription').value = '';
-}
-
-async function saveScenario() {
-    const name = document.getElementById('scenarioName').value.trim();
-    const description = document.getElementById('scenarioDescription').value.trim();
-    
-    if (!name) {
-        alert('Please enter a scenario name.');
-        return;
+        const errorMessage = {
+            role: 'assistant',
+            content: 'Error: Failed to send message',
+            staffId: state.currentStaff.id,
+            staffName: state.currentStaff.name,
+            timestamp: new Date().toISOString()
+        };
+        state.allMessages.push(errorMessage);
     }
     
-    try {
-        const response = await fetch('/api/scenarios', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                name, 
-                description,
-                characters: staffMembers 
-            })
-        });
-        
-        if (response.ok) {
-            const scenario = await response.json();
-            currentScenarioId = scenario.id;
-            updateCurrentScenarioDisplay(scenario);
-            closeSaveScenarioDialog();
-            alert('Scenario saved successfully!');
-        } else {
-            alert('Failed to save scenario.');
-        }
-    } catch (error) {
-        console.error('Error saving scenario:', error);
-        alert('Error saving scenario.');
-    }
+    state.isLoading = false;
+    renderAllMessages();
 }
 
-async function showLoadScenarioDialog() {
-    document.getElementById('loadScenarioModal').style.display = 'block';
-    await loadScenarioList();
-}
-
-function closeLoadScenarioDialog() {
-    document.getElementById('loadScenarioModal').style.display = 'none';
-}
-
-async function loadScenarioList() {
-    try {
-        const response = await fetch('/api/scenarios');
-        const scenarios = await response.json();
-        
-        const scenarioList = document.getElementById('scenarioList');
-        scenarioList.innerHTML = '';
-        
-        if (scenarios.length === 0) {
-            scenarioList.innerHTML = '<p style="color: #6c757d;">No saved scenarios found.</p>';
-            return;
-        }
-        
-        scenarios.forEach(scenario => {
-            const scenarioCard = document.createElement('div');
-            scenarioCard.style.cssText = 'border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 10px; cursor: pointer;';
-            scenarioCard.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div style="flex: 1;">
-                        <h4 style="margin: 0 0 5px 0; color: #333;">${scenario.name}</h4>
-                        <p style="margin: 0 0 5px 0; color: #6c757d; font-size: 14px;">${scenario.description || 'No description'}</p>
-                        <small style="color: #6c757d;">${scenario.characters.length} staff members</small>
+// Show scenario selector modal
+function showScenarioSelector() {
+    fetch('/api/scenarios')
+        .then(response => response.json())
+        .then(scenarios => {
+            if (scenarios.length === 0) {
+                const content = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>No training scenarios available</h3>
+                        <p>Please contact your training administrator to set up scenarios.</p>
                     </div>
-                    <div>
-                        <button onclick="loadScenario('${scenario.id}')" style="background-color: #007bff; margin-right: 5px; font-size: 12px; padding: 5px 10px;">Load</button>
-                        <button onclick="deleteScenario('${scenario.id}')" style="background-color: #dc3545; font-size: 12px; padding: 5px 10px;">Delete</button>
-                    </div>
-                </div>
-            `;
-            scenarioList.appendChild(scenarioCard);
-        });
-    } catch (error) {
-        console.error('Error loading scenarios:', error);
-    }
-}
-
-async function loadScenario(scenarioId) {
-    try {
-        const response = await fetch(`/api/scenarios/${scenarioId}`);
-        const scenario = await response.json();
-        
-        if (response.ok) {
-            // Clear current data
-            await fetch('/api/conversations/clear', { method: 'POST' });
-            
-            // Load scenario characters
-            staffMembers = scenario.characters;
-            currentScenarioId = scenario.id;
-            
-            // Update displays
-            updateCurrentScenarioDisplay(scenario);
-            loadStaffForTrainingManager();
-            
-            closeLoadScenarioDialog();
-            alert(`Scenario "${scenario.name}" loaded successfully!`);
-        } else {
-            alert('Failed to load scenario.');
-        }
-    } catch (error) {
-        console.error('Error loading scenario:', error);
-        alert('Error loading scenario.');
-    }
-}
-
-async function deleteScenario(scenarioId) {
-    if (!confirm('Are you sure you want to delete this scenario? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/scenarios/${scenarioId}`, {
-            method: 'DELETE'
-        });
-        
-        if (response.ok) {
-            await loadScenarioList();
-            if (currentScenarioId === scenarioId) {
-                currentScenarioId = null;
-                updateCurrentScenarioDisplay(null);
+                `;
+                const footer = `<button data-secondary onclick="hideModal()">Close</button>`;
+                showModal('Select Training Scenario', content, footer);
+                return;
             }
-        } else {
-            alert('Failed to delete scenario.');
-        }
-    } catch (error) {
-        console.error('Error deleting scenario:', error);
-        alert('Error deleting scenario.');
-    }
-}
-
-// Resident scenario selection
-async function showResidentScenarioSelector() {
-    document.getElementById('residentScenarioModal').style.display = 'block';
-    await loadResidentScenarioList();
-}
-
-function closeResidentScenarioSelector() {
-    document.getElementById('residentScenarioModal').style.display = 'none';
-}
-
-async function loadResidentScenarioList() {
-    try {
-        const response = await fetch('/api/scenarios');
-        const scenarios = await response.json();
-        
-        const scenarioList = document.getElementById('residentScenarioList');
-        scenarioList.innerHTML = '';
-        
-        if (scenarios.length === 0) {
-            scenarioList.innerHTML = '<p style="color: #6c757d;">No training scenarios available. Please ask your training manager to create some scenarios.</p>';
-            return;
-        }
-        
-        scenarios.forEach(scenario => {
-            const scenarioCard = document.createElement('div');
-            scenarioCard.style.cssText = 'border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 10px; cursor: pointer;';
-            scenarioCard.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div style="flex: 1;">
-                        <h4 style="margin: 0 0 5px 0; color: #333;">${scenario.name}</h4>
-                        <p style="margin: 0 0 5px 0; color: #6c757d; font-size: 14px;">${scenario.description || 'No description'}</p>
-                        <small style="color: #6c757d;">${scenario.characters.length} staff members to interview</small>
-                    </div>
-                    <div>
-                        <button onclick="selectResidentScenario('${scenario.id}')" style="background-color: #007bff; font-size: 12px; padding: 5px 15px;">Select</button>
-                    </div>
+            
+            const content = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #718096; margin-bottom: 20px;">Choose a training scenario to begin your investigation:</p>
+                    ${scenarios.map(scenario => `
+                        <div style="margin-bottom: 12px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" 
+                             onclick="selectScenarioFromModal('${scenario.id}')"
+                             onmouseover="this.style.background='#f7fafc'; this.style.borderColor='#4299e1';"
+                             onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0';">
+                            <div style="font-weight: 600; color: #1a202c; margin-bottom: 4px;">${scenario.name}</div>
+                            <div style="font-size: 12px; color: #718096; margin-bottom: 8px;">${scenario.characters.length} staff members to interview</div>
+                            <div style="color: #4a5568; font-size: 14px;">${scenario.description || 'No description provided'}</div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
-            scenarioList.appendChild(scenarioCard);
+            
+            const footer = `<button data-secondary onclick="hideModal()">Cancel</button>`;
+            showModal('Select Training Scenario', content, footer);
+        })
+        .catch(error => {
+            console.error('Error loading scenarios:', error);
+            showAlert('Error loading scenarios', 'error');
         });
-    } catch (error) {
-        console.error('Error loading scenarios:', error);
-    }
 }
 
-async function selectResidentScenario(scenarioId) {
-    try {
-        const response = await fetch(`/api/scenarios/${scenarioId}`);
-        const scenario = await response.json();
-        
-        if (response.ok) {
-            // Clear current conversations
-            await fetch('/api/conversations/clear', { method: 'POST' });
-            
-            // Load scenario for resident
-            staffMembers = scenario.characters;
-            currentScenarioId = scenario.id;
-            
-            // Update displays
-            updateResidentScenarioDisplay(scenario);
-            loadStaffMembers();
-            
-            // Clear chat area
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '<p>Select a staff member to interview about the quality issue...</p>';
-            currentStaff = null;
-            
-            closeResidentScenarioSelector();
-        } else {
-            alert('Failed to load scenario.');
-        }
-    } catch (error) {
-        console.error('Error loading scenario:', error);
-        alert('Error loading scenario.');
-    }
+// Select scenario from modal
+function selectScenarioFromModal(scenarioId) {
+    hideModal();
+    selectScenario(scenarioId);
 }
 
-function updateCurrentScenarioDisplay(scenario) {
-    const display = document.getElementById('currentScenario');
-    const nameSpan = document.getElementById('currentScenarioName');
-    const countSpan = document.getElementById('currentScenarioStaffCount');
-    
-    if (scenario) {
-        nameSpan.textContent = scenario.name;
-        countSpan.textContent = scenario.characters.length;
-        display.style.display = 'block';
-    } else {
-        display.style.display = 'none';
-    }
-}
-
-function updateResidentScenarioDisplay(scenario) {
-    const display = document.getElementById('residentCurrentScenario');
-    const nameSpan = document.getElementById('residentScenarioName');
-    const descSpan = document.getElementById('residentScenarioDescription');
-    
-    if (scenario) {
-        nameSpan.textContent = scenario.name;
-        descSpan.textContent = scenario.description || 'No description available';
-        display.style.display = 'block';
-    } else {
-        display.style.display = 'none';
-    }
-}
-
-// Clear all conversations (resident data only)
+// Clear all conversations
 async function clearAllConversations() {
-    if (!confirm('Are you sure you want to clear all conversations? This will reset all interview data but keep the staff members.')) {
-        return;
-    }
+    if (!confirm('Are you sure you want to clear all conversations? This action cannot be undone.')) return;
     
     try {
         const response = await fetch('/api/conversations/clear', {
@@ -494,25 +333,103 @@ async function clearAllConversations() {
         });
         
         if (response.ok) {
-            // Clear current conversation display
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '<p>Select a staff member to interview about the quality issue...</p>';
-            
-            // Clear selected character
-            currentStaff = null;
-            document.querySelectorAll('.character-option').forEach(o => o.classList.remove('selected'));
-            
-            alert('All conversations have been cleared successfully.');
+            state.allMessages = [];
+            state.currentStaff = null;
+            renderStaffList();
+            renderChatArea();
+            showAlert('All conversations have been cleared successfully.', 'success');
         } else {
-            alert('Failed to clear conversations.');
+            showAlert('Failed to clear conversations', 'error');
         }
     } catch (error) {
         console.error('Error clearing conversations:', error);
-        alert('Error clearing conversations.');
+        showAlert('Error clearing conversations', 'error');
     }
 }
 
-// Load characters for game master on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadStaffForTrainingManager();
+// Initialize interface
+function initializeInterface() {
+    updateScenarioHeader();
+    renderStaffList();
+    renderChatArea();
+}
+
+// Modal functions
+function showModal(title, content, footer = '') {
+    const modalContainer = document.getElementById('modal-container');
+    modalContainer.innerHTML = `
+        <div data-modal data-active>
+            <div>
+                <header>
+                    <h3>${title}</h3>
+                </header>
+                <div class="body">
+                    ${content}
+                </div>
+                ${footer ? `<footer>${footer}</footer>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function hideModal() {
+    const modalContainer = document.getElementById('modal-container');
+    modalContainer.innerHTML = '';
+}
+
+// Alert system
+function showAlert(message, type = 'info') {
+    const alert = document.createElement('div');
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+        alert.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        alert.style.color = 'white';
+    } else if (type === 'error') {
+        alert.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
+        alert.style.color = 'white';
+    } else {
+        alert.style.background = 'linear-gradient(135deg, #4299e1 0%, #3182ce 100%)';
+        alert.style.color = 'white';
+    }
+    
+    alert.textContent = message;
+    document.body.appendChild(alert);
+    
+    // Animate in
+    setTimeout(() => {
+        alert.style.opacity = '1';
+        alert.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after delay
+    setTimeout(() => {
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.parentNode.removeChild(alert);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', (e) => {
+    if (e.target.hasAttribute('data-modal')) {
+        hideModal();
+    }
 });

@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Improvement Training</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Medical Interface CSS - Single Chat View */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f2ff 0%, #f0f8ff 100%);
+            min-height: 100vh;
+            color: #2d3748;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        main {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Interface Container */
+        .chat-interface {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Scenario Header */
+        .scenario-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .scenario-info h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        .scenario-info p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .scenario-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Main Chat Container */
+        .main-chat-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Staff Panel */
+        .staff-panel {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.9);
+            border-right: 1px solid #e2e8f0;
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .staff-panel h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .staff-panel h3 i {
+            color: #4299e1;
+        }
+
+        /* Staff List */
+        #staff-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .staff-item {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .staff-item:hover {
+            background: rgba(66, 153, 225, 0.05);
+            border-color: rgba(66, 153, 225, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .staff-item.selected {
+            background: rgba(66, 153, 225, 0.1);
+            border-color: #4299e1;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
+        }
+
+        /* Color coding for staff members */
+        .staff-item[data-color="blue"] { border-color: #7dd3fc; }
+        .staff-item[data-color="green"] { border-color: #86efac; }
+        .staff-item[data-color="purple"] { border-color: #c4b5fd; }
+        .staff-item[data-color="orange"] { border-color: #fdba74; }
+        .staff-item[data-color="pink"] { border-color: #f9a8d4; }
+        .staff-item[data-color="teal"] { border-color: #5eead4; }
+        .staff-item[data-color="yellow"] { border-color: #fde047; }
+        .staff-item[data-color="red"] { border-color: #fca5a5; }
+
+        .staff-item[data-color="blue"]:hover { border-color: #0ea5e9; background: rgba(14, 165, 233, 0.05); }
+        .staff-item[data-color="green"]:hover { border-color: #16a34a; background: rgba(22, 163, 74, 0.05); }
+        .staff-item[data-color="purple"]:hover { border-color: #7c3aed; background: rgba(124, 58, 237, 0.05); }
+        .staff-item[data-color="orange"]:hover { border-color: #ea580c; background: rgba(234, 88, 12, 0.05); }
+        .staff-item[data-color="pink"]:hover { border-color: #db2777; background: rgba(219, 39, 119, 0.05); }
+        .staff-item[data-color="teal"]:hover { border-color: #0d9488; background: rgba(13, 148, 136, 0.05); }
+        .staff-item[data-color="yellow"]:hover { border-color: #ca8a04; background: rgba(202, 138, 4, 0.05); }
+        .staff-item[data-color="red"]:hover { border-color: #dc2626; background: rgba(220, 38, 38, 0.05); }
+
+        .staff-item[data-color="blue"].selected { border-color: #0ea5e9; background: rgba(14, 165, 233, 0.1); box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3); }
+        .staff-item[data-color="green"].selected { border-color: #16a34a; background: rgba(22, 163, 74, 0.1); box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3); }
+        .staff-item[data-color="purple"].selected { border-color: #7c3aed; background: rgba(124, 58, 237, 0.1); box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3); }
+        .staff-item[data-color="orange"].selected { border-color: #ea580c; background: rgba(234, 88, 12, 0.1); box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3); }
+        .staff-item[data-color="pink"].selected { border-color: #db2777; background: rgba(219, 39, 119, 0.1); box-shadow: 0 2px 8px rgba(219, 39, 119, 0.3); }
+        .staff-item[data-color="teal"].selected { border-color: #0d9488; background: rgba(13, 148, 136, 0.1); box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3); }
+        .staff-item[data-color="yellow"].selected { border-color: #ca8a04; background: rgba(202, 138, 4, 0.1); box-shadow: 0 2px 8px rgba(202, 138, 4, 0.3); }
+        .staff-item[data-color="red"].selected { border-color: #dc2626; background: rgba(220, 38, 38, 0.1); box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
+
+        .staff-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .staff-item.selected .staff-avatar {
+            background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
+        }
+
+        .staff-info {
+            flex: 1;
+        }
+
+        .staff-name {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .staff-name.anonymous {
+            color: #718096;
+            font-style: italic;
+        }
+
+        .staff-role {
+            color: #4299e1;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .staff-item.selected .staff-name {
+            color: #2b6cb0;
+        }
+
+        .staff-item.selected .staff-role {
+            color: #4299e1;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 500;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-header::before {
+            content: "💬";
+            font-size: 16px;
+        }
+
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 0;
+        }
+
+        .chat-message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .chat-message.user {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.assistant {
+            background: white;
+            border: 1px solid #e2e8f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: #2d3748;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Color-coded chat messages to match staff colors */
+        .chat-message[data-staff-color="blue"] { border-left: 4px solid #0ea5e9; }
+        .chat-message[data-staff-color="green"] { border-left: 4px solid #16a34a; }
+        .chat-message[data-staff-color="purple"] { border-left: 4px solid #7c3aed; }
+        .chat-message[data-staff-color="orange"] { border-left: 4px solid #ea580c; }
+        .chat-message[data-staff-color="pink"] { border-left: 4px solid #db2777; }
+        .chat-message[data-staff-color="teal"] { border-left: 4px solid #0d9488; }
+        .chat-message[data-staff-color="yellow"] { border-left: 4px solid #ca8a04; }
+        .chat-message[data-staff-color="red"] { border-left: 4px solid #dc2626; }
+
+        .chat-message.assistant[data-staff-color="blue"] { border-left: 4px solid #0ea5e9; background: rgba(14, 165, 233, 0.02); }
+        .chat-message.assistant[data-staff-color="green"] { border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.02); }
+        .chat-message.assistant[data-staff-color="purple"] { border-left: 4px solid #7c3aed; background: rgba(124, 58, 237, 0.02); }
+        .chat-message.assistant[data-staff-color="orange"] { border-left: 4px solid #ea580c; background: rgba(234, 88, 12, 0.02); }
+        .chat-message.assistant[data-staff-color="pink"] { border-left: 4px solid #db2777; background: rgba(219, 39, 119, 0.02); }
+        .chat-message.assistant[data-staff-color="teal"] { border-left: 4px solid #0d9488; background: rgba(13, 148, 136, 0.02); }
+        .chat-message.assistant[data-staff-color="yellow"] { border-left: 4px solid #ca8a04; background: rgba(202, 138, 4, 0.02); }
+        .chat-message.assistant[data-staff-color="red"] { border-left: 4px solid #dc2626; background: rgba(220, 38, 38, 0.02); }
+
+        /* Staff identifier for messages */
+        .message-staff-tag {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.8;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-message.assistant .message-staff-tag {
+            color: #4299e1;
+        }
+
+        .chat-message.user .message-staff-tag {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Chat Placeholder */
+        .chat-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #718096;
+            text-align: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-placeholder i {
+            font-size: 48px;
+            color: #cbd5e0;
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .chat-input:disabled {
+            background: #f7fafc;
+            color: #718096;
+            cursor: not-allowed;
+        }
+
+        #send-btn {
+            padding: 12px 16px;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        #send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Buttons */
+        button[data-primary] {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+        }
+
+        button[data-primary]:hover:not(:disabled) {
+            background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+            transform: translateY(-1px);
+        }
+
+        button[data-secondary] {
+            background: rgba(255, 255, 255, 0.9);
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button[data-secondary]:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+
+        button[data-danger] {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+        }
+
+        button[data-danger]:hover {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            transform: translateY(-1px);
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #718096;
+            animation: loading 1.4s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loading {
+            0%, 80%, 100% { 
+                transform: scale(0.8); 
+                opacity: 0.5; 
+            }
+            40% { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #cbd5e0;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        /* Modals */
+        [data-modal] {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        [data-modal][data-active] {
+            display: flex;
+        }
+
+        [data-modal] > div {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        [data-modal] header {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        [data-modal] header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        [data-modal] .body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        [data-modal] footer {
+            padding: 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f7fafc;
+        }
+
+        /* Forms */
+        form > div {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+            background: white;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .scenario-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .scenario-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .main-chat-container {
+                flex-direction: column;
+            }
+            
+            .staff-panel {
+                width: 100%;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            #staff-list {
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                padding-bottom: 4px;
+            }
+            
+            .staff-item {
+                min-width: 180px;
+                flex-shrink: 0;
+            }
+            
+            .chat-messages {
+                padding: 16px;
+            }
+            
+            .chat-input-container {
+                padding: 16px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        /* Alert Styles */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .alert.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .alert.error {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+
+        .alert.info {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+        }
+
+        .alert.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <!-- Single Chat Interface -->
+        <div class="chat-interface">
+            <!-- Scenario Selection Header -->
+            <div class="scenario-header">
+                <div class="scenario-info">
+                    <h2 id="current-scenario-name">Select a Scenario</h2>
+                    <p id="current-scenario-description">Choose a training scenario to begin interviewing staff</p>
+                </div>
+                <div class="scenario-actions">
+                    <button data-primary onclick="showScenarioSelector()" id="change-scenario-btn">
+                        <i class="fas fa-exchange-alt"></i>
+                        Change Scenario
+                    </button>
+                    <button data-danger onclick="clearAllConversations()" id="clear-chat-btn" style="display: none;">
+                        <i class="fas fa-redo"></i>
+                        Clear Chat
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Chat Container -->
+            <div class="main-chat-container">
+                <!-- Staff Selection Panel -->
+                <div class="staff-panel">
+                    <h3><i class="fas fa-users"></i> Hospital Staff</h3>
+                    <div id="staff-list">
+                        <!-- Staff members will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="chat-area">
+                    <div class="chat-header" id="chat-header">
+                        <span>Select a staff member to begin interview</span>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="chat-placeholder">
+                            <i class="fas fa-comments"></i>
+                            <p>Select a staff member from the left panel to start the interview</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="chat-input-group">
+                            <input type="text" class="chat-input" id="message-input" 
+                                   placeholder="Ask about processes and quality issues..."
+                                   onkeypress="handleChatKeyPress(event)"
+                                   disabled>
+                            <button data-primary onclick="sendMessage()" id="send-btn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modal-container"></div>
+
+    <script>
+        // Global state management for single chat interface
+        let state = {
+            currentScenario: null,
+            staffMembers: [],
+            currentStaff: null,
+            allMessages: [], // All messages in chronological order with staff identification
+            isLoading: false,
+            apiKey: null, // Store API key from URL
+            scenarios: [], // Store scenarios in browser
+            staffColors: {} // Store color assignments for staff members
+        };
+
+        // Available colors for staff members (muted but distinguishable)
+        const STAFF_COLORS = ['blue', 'green', 'purple', 'orange', 'pink', 'teal', 'yellow', 'red'];
+
+        // Default scenarios data
+        const defaultScenarios = [
+            {
+                id: 'lab-timing-delays',
+                name: 'Lab Timing Delays Investigation',
+                description: 'Investigate why morning labs are not being drawn and reported in a timely manner. Hospital policy requires results by 7:30 AM but delays are affecting patient care.',
+                characters: [
+                    {
+                        id: 'physician-001',
+                        name: 'Dr. Sarah Chen',
+                        occupation: 'Physician',
+                        attitude: 'Just want to see things fixed and don\'t understand why they are so broken. Helpful however they can but have limited knowledge outside of knowing it makes their job harder.',
+                        knowledge: 'Lab results are supposed to be back by 7:30 AM per hospital policy. Lab delays are happening per the opinion of physicians and it is affecting their ability to provide medical care. I put in at least two patient safety reports. One patient\'s discharge was delayed because the only ride available left before we had morning lab results. Another patient had to receive his medications much later in the day because of lab delays that I needed for dosing. In general, I think lab delays are happening more frequently. I typically get sign out around 7:15 AM, so if I could have all results back by 7:30 AM I would have all the information I need when I start rounds.'
+                    },
+                    {
+                        id: 'lab-tech-001',
+                        name: 'Mike Rodriguez',
+                        occupation: 'Lab Tech',
+                        attitude: 'No nonsense, succinct, they understand the system and directly and clearly answer questions.',
+                        knowledge: 'When specimens arrive, I remove them from the pneumatic tube and stack all of them in the lab analyzer. The analyzer reads the barcode and performs the appropriate test. The analyzer takes 35 minutes to run a CBC and 42 minutes to run a BMP. Once analyzed, a lab tech will confirm the results, look for suspicious outliers, and release the report to the electronic medical record which on average takes 4-5 minutes from the time the analyzer finishes. I have data on how long everything takes in our lab. Overall, it takes 47 minutes to result a BMP & 39 minutes to result a CBC from the time we receive the blood until the time it is reported in the medical record. Plus, we have a very low standard deviation of only +/-3 minutes. Which means the delays in labs being reported on time doesn\'t stem from us. We are pretty consistent and don\'t have a lot we can change given the fixed time it takes the analyzer to run. Furthermore, our analyzers are top tier, you can\'t get much faster than these machines go! These machines can handle a lot of labs. I don\'t think it would be a big deal for the instrument, but we may need to adjust our staffing if that was occurring really early in the morning since we don\'t have very many techs on from midnight until 5:30 AM. If too many labs came in before 5:30 AM we might need to hire more techs.'
+                    },
+                    {
+                        id: 'phlebotomist-001',
+                        name: 'Jennifer Williams',
+                        occupation: 'Phlebotomist',
+                        attitude: 'Smart, competent and busy. They have a lot to do and are a little annoyed that night team doesn\'t help out more. That being said, they are professional, want to see improvement and clearly understand the system.',
+                        knowledge: 'All blood draws and IVs are done by a phlebotomy team and not by bedside nurses per our union contract. Phlebotomy staffing is split into two shifts, night and day shift, both of which are 12-hour shifts that begin at either 5:00 AM or 5:00 PM. Five phlebotomists are assigned to the night shift, ten are assigned to day shift. We\'re a bit short-staffed right now as four phlebotomists recently retired and their spots are still empty. In the past 6 months, on an average morning, we draw blood from 150 patients each morning. Morning labs are ordered by the provider for the "0530 draw". This is just an average time of when blood is drawn, obviously not every lab is done right at 0530. When day phlebotomy team arrives at 5:00 AM, we get our assignment, prep the lab draw cart which takes about 15-20 minutes in the supply room and head off to begin collections by 5:30 AM. We each draw our list of patients which typically is done by ward. The night phlebotomy team is on until 5:00am and lab draws are supposed to start at 4:00 AM. This means there is an hour of night shift they can help-out. However, it\'s poorly managed and there are no real rules. Typically, the night shift phlebotomists each choose five patients at their own discretion on which to draw labs. The night shift phlebotomists cherry pick the easy patients. You know, the patients with a central line or something. They also "count" an attempted draw, even if they were not successful. They may only end up getting blood from 3 patients with central lines and have 2 "attempts" and they are done. It ultimately means they provide almost no help with the morning draw volume, it\'s all left to day team.'
+                    },
+                    {
+                        id: 'nurse-001',
+                        name: 'Lisa Park',
+                        occupation: 'Nurse',
+                        attitude: 'Helpful but befuddled. They don\'t do this work and have little to offer.',
+                        knowledge: 'Happy to help but to be honest I don\'t know that much. Per our union contract all blood draws are done by phlebotomy and not bedside nurses on the medical and surgical floors. This is not true for the ICU or the ED, those nurses draw their own labs. But for floor patients, phlebotomy does it. Yes, phlebotomy draws off ports and PICC lines. However if they cannot get a blood draw we do have a special nurse run "Complex IV team" which can help place PICCS or do ultrasound guided blood draws and IV placement if phlebotomy can\'t get blood.'
+                    },
+                    {
+                        id: 'phlebotomy-manager-001',
+                        name: 'Bob Thompson',
+                        occupation: 'Phlebotomy Manager',
+                        attitude: 'This character is supposed to be a grumpy curmudgeon. He is 6 months from retirement and not interested in helping if he doesn\'t absolutely have to. He clearly hasn\'t worked to fix any problems as the manager and isn\'t interested in starting unless he must.',
+                        knowledge: 'Morale is pretty low. I think staffing is the major issue. We are chronically short staffed. We had 4 people retire in the past few months. Unfortunately, it takes so long to hire new staff there is often a big delay between staff leaving and the new people starting. Also, our staffing doesn\'t align with the needs of the hospital. I have no clue why shifts start at 5:00 AM which is right in the middle of the AM draw and the busiest time of day for us. Furthermore, because the shifts are 12-hours long we end up having too few people in the morning for the bulk draw when we need them and too many people in the afternoon when things slow down. But changing people\'s schedules pretty much takes an act of congress. Once you are hired the union protections mandate that we give them the shift they were hired for. Maybe we should hire the 4 new replacements for different shifts since the union contract only applies after you are hired... Yes, an even bigger issue is we don\'t have any limits on people overlapping their vacation time. Some folks will schedule their vacation days to align because they know the workload will be higher when someone else if off. One day last month we only had 4 phlebotomist show up for day shift, out of 10!...for the entire hospital. I thought about trying to change the vacation policy but working with the union takes WAY to long. I just gave up. Look, I\'ll be honest. I\'m not a people person. I\'m 6 months from retirement. While I appreciate and welcome the help to try to improve the situation, I\'m not sure it\'s going to do much good. I recently did observations of an entire mornings blood draws and recorded how the phlebotomists spend their time. With so many patients to draw, little delays here and there add up quickly, like having to place an IV, gown up, draw routine blood cultures or the inevitable "stat" lab which requires they drop what they are doing on the AM bulk draw and deal with the stat lab instead. I\'m almost certain most of our early morning stat labs are because one of the docs forgot to order it for the bulk lab draw so they just order it stat instead. It\'s amazing how many 6:30 or 7:00 AM stat labs we get on patients who have no other labs ordered. Very suspicious... and it totally disrupts the bulk draw work-flow because they have to run off and take care of the stat draw and it delays everything else.'
+                    }
+                ],
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: 'medication-reconciliation-errors',
+                name: 'Medication Reconciliation at Discharge',
+                description: 'Investigate why patients are experiencing medication errors and confusion after hospital discharge.',
+                characters: [
+                    {
+                        id: 'attending-physician-002',
+                        name: 'Dr. Michael Torres',
+                        occupation: 'Attending Physician',
+                        attitude: 'Busy and focused on clinical care. Somewhat impatient with administrative tasks but recognizes the importance of patient safety. Direct in communication.',
+                        knowledge: 'I see patients coming back to the ER or clinic confused about their medications. Some patients are taking both their old medications AND the new ones we prescribed, which is dangerous. Others stop taking important medications because they think they were replaced. The discharge process is rushed - I usually spend 2-3 minutes reviewing medications with patients before they leave. I rely on the residents and nurses to do the detailed medication reconciliation. Sometimes the medication list in the computer doesn\'t match what the patient was actually taking at home. I\'ve had patients end up in the ICU because they double-dosed their blood pressure medications.'
+                    },
+                    {
+                        id: 'resident-physician-002',
+                        name: 'Dr. Amy Kim',
+                        occupation: 'Resident Physician',
+                        attitude: 'Overwhelmed and stressed. Eager to help but admits to feeling undertrained in medication reconciliation. Honest about mistakes and gaps in knowledge.',
+                        knowledge: 'Medication reconciliation takes forever and I\'m not sure I\'m doing it right. Patients often can\'t remember their medication names or doses, especially elderly patients. The electronic medical record is confusing - it shows medications from previous admissions that may not be current. I try to call the patient\'s pharmacy but they\'re often busy or closed. Sometimes I just go with what\'s in the computer because I have 6 other discharges to complete before my shift ends. I know I\'m supposed to do a complete review but I wasn\'t really trained on this process in medical school. The attending expects it to be done but doesn\'t have time to teach me how to do it properly.'
+                    },
+                    {
+                        id: 'discharge-nurse-002',
+                        name: 'Susan Martinez',
+                        occupation: 'Discharge Nurse',
+                        attitude: 'Professional and detail-oriented but frustrated by system issues. Has strong opinions about how things should work. Protective of patients.',
+                        knowledge: 'I\'m the one who actually hands patients their discharge instructions and medications, but I often get incomplete information. The residents sometimes forget to update the medication list after changes are made during the stay. Patients ask me questions about their medications that I can\'t answer because the discharge summary is unclear. The pharmacy delivers discharge medications in bags with labels that don\'t match what\'s written in the instructions. I spend a lot of time on the phone trying to clarify discrepancies. Patients are often confused about which medications to stop and which to continue. Many elderly patients leave with family members who also don\'t understand the instructions. I think someone needs to sit down with every patient and go through each medication, but there\'s no time built into the schedule for that.'
+                    },
+                    {
+                        id: 'clinical-pharmacist-002',
+                        name: 'David Chen',
+                        occupation: 'Clinical Pharmacist',
+                        attitude: 'Knowledgeable and systematic but overwhelmed by volume. Slightly defensive about pharmacy operations but genuinely wants to improve patient care.',
+                        knowledge: 'I\'m only consulted on complex cases, but I should probably review all discharge medications. When I do get involved, I find errors about 40% of the time - wrong doses, dangerous interactions, or medications that should have been stopped. The biggest issue is that the admission medication reconciliation is often wrong, so everything builds from a bad foundation. Patients bring in pill bottles from home but they might be old prescriptions or medications they stopped taking months ago. The primary care doctors change medications between visits, but we don\'t always have updated information. I can fix drug interactions and dosing errors, but I need more time with each patient. Currently I might see 2-3 discharge patients per day when I should probably see 10-15. The system doesn\'t give pharmacists enough time to do thorough medication reconciliation.'
+                    },
+                    {
+                        id: 'case-manager-002',
+                        name: 'Maria Rodriguez',
+                        occupation: 'Case Manager',
+                        attitude: 'Focused on discharge planning and patient flow. Practical and results-oriented but sometimes prioritizes speed over thoroughness.',
+                        knowledge: 'My job is to get patients discharged safely and efficiently. Medication reconciliation often holds up discharges, especially when there are insurance issues or prior authorization requirements. Patients can\'t afford some of the medications we prescribe, so they leave without them or try to stretch their old medications. I help coordinate with social services and insurance, but that process can take hours or days. Sometimes we discharge patients with partial medication lists because we can\'t wait any longer for approvals. The pressure to move patients out quickly means we don\'t always have time for thorough medication education. I see the same patients readmitted within a week, and often it\'s related to medication confusion or non-compliance.'
+                    }
+                ],
+                createdAt: new Date().toISOString()
+            }
+        ];
+
+        // Utility functions
+        function generateId() {
+            return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Assign colors to staff members
+        function assignStaffColors(staffMembers) {
+            const colorKey = `qi-staff-colors-${state.currentScenario?.id}`;
+            let savedColors = loadFromStorage(colorKey, {});
+            
+            staffMembers.forEach((staff, index) => {
+                if (!savedColors[staff.id]) {
+                    savedColors[staff.id] = STAFF_COLORS[index % STAFF_COLORS.length];
+                }
+            });
+            
+            state.staffColors = savedColors;
+            saveToStorage(colorKey, savedColors);
+        }
+
+        // Get staff color by ID
+        function getStaffColor(staffId) {
+            return state.staffColors[staffId] || 'blue';
+        }
+
+        // Local Storage functions
+        function saveToStorage(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        function loadFromStorage(key, defaultValue = null) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultValue;
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                return defaultValue;
+            }
+        }
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Extract API key from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            state.apiKey = urlParams.get('apikey');
+            
+            if (!state.apiKey) {
+                showAlert('API Key required. Please add ?apikey=your_openai_key to the URL', 'error');
+            }
+            
+            // Load scenarios from localStorage or use defaults
+            state.scenarios = loadFromStorage('qi-scenarios', defaultScenarios);
+            
+            await loadScenarios();
+            initializeInterface();
+            console.log('Quality Improvement Training - Single Chat Interface initialized');
+        });
+
+        // Load available scenarios
+        async function loadScenarios() {
+            try {
+                if (state.scenarios.length > 0) {
+                    // Auto-select first scenario if available
+                    await selectScenario(state.scenarios[0].id);
+                }
+            } catch (error) {
+                console.error('Error loading scenarios:', error);
+                showAlert('Error loading scenarios', 'error');
+            }
+        }
+
+        // Select and load a scenario
+        async function selectScenario(scenarioId) {
+            try {
+                const scenario = state.scenarios.find(s => s.id === scenarioId);
+                if (scenario) {
+                    state.currentScenario = scenario;
+                    state.staffMembers = [...scenario.characters];
+                    state.currentStaff = null;
+                    
+                    // Assign colors to staff members
+                    assignStaffColors(state.staffMembers);
+                    
+                    // Load conversations from localStorage
+                    const conversationKey = `qi-conversations-${scenarioId}`;
+                    state.allMessages = loadFromStorage(conversationKey, []);
+                    
+                    updateScenarioHeader();
+                    renderStaffList();
+                    renderChatArea();
+                    
+                    // Show clear chat button if scenario is loaded
+                    document.getElementById('clear-chat-btn').style.display = scenario.characters.length > 0 ? 'block' : 'none';
+                    
+                    showAlert(`Scenario "${scenario.name}" loaded successfully!`, 'success');
+                } else {
+                    showAlert('Failed to load scenario', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading scenario:', error);
+                showAlert('Error loading scenario', 'error');
+            }
+        }
+
+        // Update scenario header
+        function updateScenarioHeader() {
+            const nameEl = document.getElementById('current-scenario-name');
+            const descEl = document.getElementById('current-scenario-description');
+            
+            if (state.currentScenario) {
+                nameEl.textContent = state.currentScenario.name;
+                descEl.textContent = state.currentScenario.description || 'Interview hospital staff to investigate quality improvement opportunities';
+            } else {
+                nameEl.textContent = 'Select a Scenario';
+                descEl.textContent = 'Choose a training scenario to begin interviewing staff';
+            }
+        }
+
+        // Render staff list
+        function renderStaffList() {
+            const staffList = document.getElementById('staff-list');
+            
+            if (!state.currentScenario || state.staffMembers.length === 0) {
+                staffList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-md"></i>
+                        <h3>No staff available</h3>
+                        <p>Please select a scenario with staff members</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            staffList.innerHTML = state.staffMembers.map(staff => `
+                <div class="staff-item ${state.currentStaff?.id === staff.id ? 'selected' : ''}" 
+                     data-color="${getStaffColor(staff.id)}"
+                     onclick="selectStaff('${staff.id}')">
+                    <div class="staff-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="staff-info">
+                        <div class="staff-name ${staff.name.startsWith('Anonymous') ? 'anonymous' : ''}">${staff.name}</div>
+                        <div class="staff-role">${staff.occupation}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select a staff member
+        function selectStaff(staffId) {
+            const staff = state.staffMembers.find(s => s.id === staffId);
+            if (!staff) return;
+            
+            state.currentStaff = staff;
+            renderStaffList(); // Update selection
+            renderChatArea(); // Update chat header and enable input
+        }
+
+        // Render chat area
+        function renderChatArea() {
+            const chatHeader = document.getElementById('chat-header');
+            const chatMessages = document.getElementById('chat-messages');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            
+            if (!state.currentStaff) {
+                chatHeader.innerHTML = '<span>Select a staff member to begin interview</span>';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+                
+                if (state.allMessages.length === 0) {
+                    chatMessages.innerHTML = `
+                        <div class="chat-placeholder">
+                            <i class="fas fa-comments"></i>
+                            <p>Select a staff member from the left panel to start the interview</p>
+                        </div>
+                    `;
+                } else {
+                    renderAllMessages();
+                }
+            } else {
+                chatHeader.innerHTML = `<span>Now interviewing ${state.currentStaff.name} (${state.currentStaff.occupation})</span>`;
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                renderAllMessages();
+            }
+        }
+
+        // Render all messages in chronological order
+        function renderAllMessages() {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            if (state.allMessages.length === 0) {
+                chatMessages.innerHTML = `
+                    <div class="chat-placeholder">
+                        <i class="fas fa-comments"></i>
+                        <p>Start the conversation by asking a question</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = state.allMessages.map(message => {
+                const staffName = message.staffName || 'Unknown Staff';
+                const staffColor = message.staffId ? getStaffColor(message.staffId) : 'blue';
+                const staffTag = message.role === 'assistant' ? 
+                    `<div class="message-staff-tag">${staffName}</div>` : '';
+                
+                return `
+                    <div class="chat-message ${message.role}" data-staff-color="${staffColor}">
+                        ${staffTag}
+                        ${message.content}
+                    </div>
+                `;
+            }).join('');
+            
+            if (state.isLoading) {
+                const currentStaffColor = state.currentStaff ? getStaffColor(state.currentStaff.id) : 'blue';
+                html += `
+                    <div class="chat-message assistant" data-staff-color="${currentStaffColor}">
+                        <div class="message-staff-tag">${state.currentStaff?.name || 'Staff'}</div>
+                        <div class="loading-dots">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                        <span style="margin-left: 8px; color: #718096;">Typing...</span>
+                    </div>
+                `;
+            }
+            
+            chatMessages.innerHTML = html;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Handle chat input key press
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (!message || !state.currentStaff || state.isLoading || !state.apiKey) return;
+            
+            // Add user message to all messages
+            const userMessage = {
+                role: 'user',
+                content: message,
+                staffId: state.currentStaff.id,
+                staffName: state.currentStaff.name,
+                timestamp: new Date().toISOString()
+            };
+            
+            state.allMessages.push(userMessage);
+            messageInput.value = '';
+            state.isLoading = true;
+            
+            renderAllMessages();
+            
+            // Save to localStorage
+            const conversationKey = `qi-conversations-${state.currentScenario.id}`;
+            saveToStorage(conversationKey, state.allMessages);
+            
+            try {
+                // Call OpenAI API directly
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `You are ${state.currentStaff.name}, a ${state.currentStaff.occupation} in a hospital quality improvement training simulation. 
+
+Your attitude and personality:
+${state.currentStaff.attitude}
+
+Your knowledge and what you can reveal:
+${state.currentStaff.knowledge}
+
+IMPORTANT RULES:
+- Stay strictly in character as ${state.currentStaff.name} with the attitude described above
+- Only reveal information that is explicitly in your knowledge section above
+- BE REALISTIC: Don't volunteer large amounts of information unless specifically asked detailed questions
+- Answer only what is directly asked - don't elaborate beyond the specific question
+- Make the resident work for information by requiring follow-up questions for details
+- If asked a general question, give a brief, surface-level response
+- Require specific, targeted questions to reveal deeper insights and data
+- Act like a real busy hospital employee who gives short answers unless pressed for details
+- Don't reveal information you don't have or make up new facts about processes or issues
+- If asked about something not in your knowledge, say you don't know or direct them to ask another staff member
+- Keep initial responses brief (1-2 sentences) unless asked for specifics
+- Make residents ask "why" and "how" and "when" to get the full picture
+- Remember to consistently portray your described attitude and personality
+- Maintain your personality and communication style throughout the conversation
+- You can create mundane small talk consistent with your personality, but nothing case-relevant beyond your knowledge
+- Respond naturally as if being interviewed by a resident about quality improvement issues
+- Interviews should be 2-4 minutes, so be somewhat concise but thorough when sharing your knowledge`
+                            },
+                            { role: 'user', content: message }
+                        ],
+                        max_tokens: 150,
+                        temperature: 0.7
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const aiMessage = {
+                        role: 'assistant',
+                        content: data.choices[0].message.content,
+                        staffId: state.currentStaff.id,
+                        staffName: state.currentStaff.name,
+                        timestamp: new Date().toISOString()
+                    };
+                    state.allMessages.push(aiMessage);
+                } else {
+                    const errorMessage = {
+                        role: 'assistant',
+                        content: 'Error: ' + (data.error?.message || 'Failed to get response'),
+                        staffId: state.currentStaff.id,
+                        staffName: state.currentStaff.name,
+                        timestamp: new Date().toISOString()
+                    };
+                    state.allMessages.push(errorMessage);
+                }
+            } catch (error) {
+                console.error('OpenAI API error:', error);
+                const errorMessage = {
+                    role: 'assistant',
+                    content: 'Error: Failed to send message. Please check your API key and internet connection.',
+                    staffId: state.currentStaff.id,
+                    staffName: state.currentStaff.name,
+                    timestamp: new Date().toISOString()
+                };
+                state.allMessages.push(errorMessage);
+            }
+            
+            state.isLoading = false;
+            renderAllMessages();
+            
+            // Save updated conversations to localStorage
+            saveToStorage(conversationKey, state.allMessages);
+        }
+
+        // Show scenario selector modal
+        function showScenarioSelector() {
+            if (state.scenarios.length === 0) {
+                const content = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>No training scenarios available</h3>
+                        <p>Please contact your training administrator to set up scenarios.</p>
+                    </div>
+                `;
+                const footer = `<button data-secondary onclick="hideModal()">Close</button>`;
+                showModal('Select Training Scenario', content, footer);
+                return;
+            }
+            
+            const content = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #718096; margin-bottom: 20px;">Choose a training scenario to begin your investigation:</p>
+                    ${state.scenarios.map(scenario => `
+                        <div style="margin-bottom: 12px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" 
+                             onclick="selectScenarioFromModal('${scenario.id}')"
+                             onmouseover="this.style.background='#f7fafc'; this.style.borderColor='#4299e1';"
+                             onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0';">
+                            <div style="font-weight: 600; color: #1a202c; margin-bottom: 4px;">${scenario.name}</div>
+                            <div style="font-size: 12px; color: #718096; margin-bottom: 8px;">${scenario.characters.length} staff members to interview</div>
+                            <div style="color: #4a5568; font-size: 14px;">${scenario.description || 'No description provided'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            const footer = `<button data-secondary onclick="hideModal()">Cancel</button>`;
+            showModal('Select Training Scenario', content, footer);
+        }
+
+        // Select scenario from modal
+        function selectScenarioFromModal(scenarioId) {
+            hideModal();
+            selectScenario(scenarioId);
+        }
+
+        // Clear all conversations
+        async function clearAllConversations() {
+            if (!confirm('Are you sure you want to clear all conversations? This action cannot be undone.')) return;
+            
+            try {
+                state.allMessages = [];
+                state.currentStaff = null;
+                
+                // Clear from localStorage
+                const conversationKey = `qi-conversations-${state.currentScenario.id}`;
+                localStorage.removeItem(conversationKey);
+                
+                renderStaffList();
+                renderChatArea();
+                showAlert('All conversations have been cleared successfully.', 'success');
+            } catch (error) {
+                console.error('Error clearing conversations:', error);
+                showAlert('Error clearing conversations', 'error');
+            }
+        }
+
+        // Initialize interface
+        function initializeInterface() {
+            updateScenarioHeader();
+            renderStaffList();
+            renderChatArea();
+        }
+
+        // Modal functions
+        function showModal(title, content, footer = '') {
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = `
+                <div data-modal data-active>
+                    <div>
+                        <header>
+                            <h3>${title}</h3>
+                        </header>
+                        <div class="body">
+                            ${content}
+                        </div>
+                        ${footer ? `<footer>${footer}</footer>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideModal() {
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = '';
+        }
+
+        // Alert system
+        function showAlert(message, type = 'info') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            
+            // Animate in
+            setTimeout(() => {
+                alert.classList.add('show');
+            }, 100);
+            
+            // Remove after delay
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.hasAttribute('data-modal')) {
+                hideModal();
+            }
+        });
+    </script>
+</body>
+</html>

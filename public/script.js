@@ -62,9 +62,6 @@ async function selectScenario(scenarioId) {
             // Show clear chat button if scenario is loaded
             document.getElementById('clear-chat-btn').style.display = scenario.characters.length > 0 ? 'block' : 'none';
             
-            // Show download button if there are messages
-            document.getElementById('download-transcript-btn').style.display = state.allMessages.length > 0 ? 'block' : 'none';
-            
             showAlert(`Scenario "${scenario.name}" loaded successfully!`, 'success');
         } else {
             showAlert('Failed to load scenario', 'error');
@@ -275,9 +272,6 @@ async function sendMessage() {
     
     state.isLoading = false;
     renderAllMessages();
-    
-    // Show download button when there are messages
-    document.getElementById('download-transcript-btn').style.display = state.allMessages.length > 0 ? 'block' : 'none';
 }
 
 // Show scenario selector modal
@@ -343,10 +337,6 @@ async function clearAllConversations() {
             state.currentStaff = null;
             renderStaffList();
             renderChatArea();
-            
-            // Hide download button when no messages
-            document.getElementById('download-transcript-btn').style.display = 'none';
-            
             showAlert('All conversations have been cleared successfully.', 'success');
         } else {
             showAlert('Failed to clear conversations', 'error');

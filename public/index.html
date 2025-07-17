@@ -22,10 +22,6 @@
                         <i class="fas fa-exchange-alt"></i>
                         Change Scenario
                     </button>
-                    <button onclick="downloadTranscriptRTF()" id="download-transcript-btn" style="display: none;">
-                        <i class="fas fa-download"></i>
-                        Download Transcript
-                    </button>
                     <button data-danger onclick="clearAllConversations()" id="clear-chat-btn" style="display: none;">
                         <i class="fas fa-redo"></i>
                         Clear Chat
@@ -63,6 +59,10 @@
                             <button data-primary onclick="sendMessage()" id="send-btn" disabled>
                                 <i class="fas fa-paper-plane"></i>
                                 Send
+                            </button>
+                            <button data-danger onclick="downloadTranscriptRTF()" id="download-transcript-btn">
+                                <i class="fas fa-download"></i>
+                                Download
                             </button>
                         </div>
                     </div>

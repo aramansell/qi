@@ -62,6 +62,9 @@ async function selectScenario(scenarioId) {
             // Show clear chat button if scenario is loaded
             document.getElementById('clear-chat-btn').style.display = scenario.characters.length > 0 ? 'block' : 'none';
             
+            // Show download button if there are messages
+            document.getElementById('download-transcript-btn').style.display = state.allMessages.length > 0 ? 'block' : 'none';
+            
             showAlert(`Scenario "${scenario.name}" loaded successfully!`, 'success');
         } else {
             showAlert('Failed to load scenario', 'error');
@@ -272,6 +275,9 @@ async function sendMessage() {
     
     state.isLoading = false;
     renderAllMessages();
+    
+    // Show download button when there are messages
+    document.getElementById('download-transcript-btn').style.display = state.allMessages.length > 0 ? 'block' : 'none';
 }
 
 // Show scenario selector modal
@@ -337,6 +343,10 @@ async function clearAllConversations() {
             state.currentStaff = null;
             renderStaffList();
             renderChatArea();
+            
+            // Hide download button when no messages
+            document.getElementById('download-transcript-btn').style.display = 'none';
+            
             showAlert('All conversations have been cleared successfully.', 'success');
         } else {
             showAlert('Failed to clear conversations', 'error');
@@ -425,6 +435,54 @@ function showAlert(message, type = 'info') {
             }
         }, 300);
     }, 3000);
+}
+
+// Generate and download transcript as RTF
+function downloadTranscriptRTF() {
+    if (state.allMessages.length === 0) {
+        showAlert('No conversation to export', 'error');
+        return;
+    }
+    
+    // Generate RTF content with proper formatting
+    let rtfContent = '{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}';
+    rtfContent += '\\f0\\fs24 '; // Set font and size
+    
+    // Add title
+    rtfContent += '\\b Interview Transcript\\b0\\par\\par';
+    
+    // Add scenario information
+    if (state.currentScenario) {
+        rtfContent += `\\b Scenario:\\b0 ${state.currentScenario.name}\\par`;
+        rtfContent += `\\b Date:\\b0 ${new Date().toLocaleDateString()}\\par\\par`;
+    }
+    
+    // Process messages and format as script
+    state.allMessages.forEach(message => {
+        const speaker = message.role === 'user' ? 'User' : message.staffName || 'Staff';
+        const cleanContent = message.content
+            .replace(/\\/g, '\\\\')  // Escape backslashes
+            .replace(/\{/g, '\\{')   // Escape braces
+            .replace(/\}/g, '\\}')   // Escape braces
+            .replace(/\n/g, '\\par'); // Convert newlines to RTF paragraph breaks
+        
+        rtfContent += `\\b ${speaker}:\\b0 ${cleanContent}\\par\\par`;
+    });
+    
+    rtfContent += '}'; // Close RTF document
+    
+    // Create and download the file
+    const blob = new Blob([rtfContent], { type: 'application/rtf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transcript_${new Date().toISOString().slice(0, 10)}.rtf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showAlert('Transcript downloaded successfully!', 'success');
 }
 
 // Close modal when clicking outside

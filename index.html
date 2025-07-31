@@ -1532,7 +1532,8 @@
                     chatHeader.innerHTML = `<span>There have been delays with morning labs not being drawn and reported in a timely manner. Interview the employees and when you are done interviewing be sure to download the transcript. You can change who you are interviewing by selecting their title from the choices. You can switch as many times as you need to gather the relevent information. The physician is ready to be interviewed or you may chose a different person and begin.</span>`;
                 } else {
                     // Hide the header completely after first message
-                    chatHeader.style.display = 'none';
+                    chatHeader.style.height = '0';
+                    chatHeader.style.overflow = 'hidden';
                 }
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
@@ -1586,12 +1587,10 @@
             chatMessages.innerHTML = html;
             
             // Auto-scroll to bottom with smooth behavior
-            setTimeout(() => {
-                chatMessages.scrollTo({
-                    top: chatMessages.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }, 100);
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
         }
 
         // Handle chat input key press

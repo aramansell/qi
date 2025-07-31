@@ -1356,7 +1356,7 @@
         // Initialize mobile-specific features
         function initializeMobileFeatures() {
             // Prevent pull-to-refresh and body scrolling on mobile
-            document.body.style.position = 'fixed';
+            // document.body.style.position = 'fixed';
             document.body.style.width = '100%';
             document.body.style.height = '100vh';
             document.body.style.overflow = 'hidden';
@@ -1377,7 +1377,7 @@
                     setTimeout(() => {
                         const chatInputContainer = document.querySelector('.chat-input-container');
                         if (chatInputContainer) {
-                            chatInputContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                            chatInputContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         }
                         
                         // Scroll to bottom of messages
@@ -1399,16 +1399,16 @@
             document.addEventListener('touchstart', function() {}, { passive: true });
             
             // Handle viewport changes (keyboard show/hide)
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', () => {
-                    const chatInterface = document.querySelector('.chat-interface');
-                    if (chatInterface && window.visualViewport) {
-                        // Adjust the interface height based on visible viewport
-                        const viewportHeight = window.visualViewport.height;
-                        chatInterface.style.height = `${viewportHeight}px`;
-                    }
-                });
-            }
+            // if (window.visualViewport) {
+            //     window.visualViewport.addEventListener('resize', () => {
+            //         const chatInterface = document.querySelector('.chat-interface');
+            //         if (chatInterface && window.visualViewport) {
+            //             // Adjust the interface height based on visible viewport
+            //             const viewportHeight = window.visualViewport.height;
+            //             chatInterface.style.height = `${viewportHeight}px`;
+            //         }
+            //     });
+            // }
         }
 
         // Load available scenarios

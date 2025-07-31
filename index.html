@@ -30,6 +30,11 @@
             -webkit-touch-callout: none;
             overscroll-behavior: none;
         }
+        
+        /* Use dynamic viewport height for mobile keyboard support */
+        :root {
+            --vh: 1vh;
+        }
 
         main {
             height: 100vh;
@@ -41,7 +46,7 @@
         .chat-interface {
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
         }
 
         /* Scenario Header */
@@ -880,8 +885,6 @@
         @media (max-width: 480px) {
             /* Ensure proper initial layout on very small screens */
             body, main, .chat-interface {
-                height: 100vh;
-                height: 100dvh;
                 height: calc(var(--vh, 1vh) * 100);
                 max-height: -webkit-fill-available;
             }
@@ -1312,14 +1315,15 @@
 
         // Initialize application
         document.addEventListener('DOMContentLoaded', async () => {
-            // Set viewport height CSS variable for mobile
+            // Set viewport height CSS variable for mobile (fixes keyboard push issue)
             const setViewportHeight = () => {
                 const vh = window.innerHeight * 0.01;
                 document.documentElement.style.setProperty('--vh', `${vh}px`);
             };
             setViewportHeight();
             window.addEventListener('resize', setViewportHeight);
-            
+            window.addEventListener('orientationchange', setViewportHeight);
+        
             // Extract API key from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             state.apiKey = urlParams.get('apikey');

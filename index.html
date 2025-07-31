@@ -1362,12 +1362,12 @@
             document.body.style.overflow = 'hidden';
             
             // Allow scrolling only in specific areas
-            document.body.addEventListener('touchmove', function(e) {
-                if (e.target.closest('.chat-messages') || e.target.closest('.staff-panel')) {
-                    return; // Allow scrolling in these areas
-                }
-                e.preventDefault(); // Prevent scrolling elsewhere
-            }, { passive: false });
+            // document.body.addEventListener('touchmove', function(e) {
+            //     if (e.target.closest('.chat-messages') || e.target.closest('.staff-panel')) {
+            //         return; // Allow scrolling in these areas
+            //     }
+            //     e.preventDefault(); // Prevent scrolling elsewhere
+            // }, { passive: false });
             
             // Handle virtual keyboard
             const messageInput = document.getElementById('message-input');
@@ -1637,7 +1637,7 @@
                         'Authorization': `Bearer ${state.apiKey}`
                     },
                     body: JSON.stringify({
-                        model: 'gpt-3.5-turbo',
+                        model: 'gpt-4.1-mini',
                         messages: [
                             {
                                 role: 'system',
@@ -1791,20 +1791,18 @@ IMPORTANT RULES:
             
             // Ensure chat input is visible on mobile
             if (isMobile()) {
-                setTimeout(() => {
-                    const chatInputContainer = document.querySelector('.chat-input-container');
-                    if (chatInputContainer) {
-                        // Make sure the input container is in view
-                        const rect = chatInputContainer.getBoundingClientRect();
-                        if (rect.bottom > window.innerHeight) {
-                            // If input is below viewport, adjust layout
-                            const chatMessages = document.getElementById('chat-messages');
-                            if (chatMessages) {
-                                chatMessages.style.maxHeight = `${window.innerHeight - rect.height - 200}px`;
-                            }
+                const chatInputContainer = document.querySelector('.chat-input-container');
+                if (chatInputContainer) {
+                    // Make sure the input container is in view
+                    const rect = chatInputContainer.getBoundingClientRect();
+                    if (rect.bottom > window.innerHeight) {
+                        // If input is below viewport, adjust layout
+                        const chatMessages = document.getElementById('chat-messages');
+                        if (chatMessages) {
+                            chatMessages.style.maxHeight = `${window.innerHeight - rect.height - 200}px`;
                         }
                     }
-                }, 100);
+                }
             }
         }
 

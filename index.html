@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Quality Improvement Training</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -20,6 +22,9 @@
             color: #2d3748;
             font-size: 14px;
             line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            overscroll-behavior: none;
         }
 
         main {
@@ -45,6 +50,8 @@
             align-items: center;
             backdrop-filter: blur(10px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .scenario-info h2 {
@@ -79,6 +86,7 @@
             padding: 20px;
             overflow-y: auto;
             backdrop-filter: blur(10px);
+            max-height: calc(100vh - 120px);
         }
 
         .staff-panel h3 {
@@ -208,6 +216,7 @@
             flex-direction: column;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
+            min-width: 0;
         }
 
         .chat-header {
@@ -219,6 +228,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .chat-header::before {
@@ -226,16 +236,20 @@
             font-size: 16px;
         }
 
-        /* Chat Messages */
+        /* Chat Messages - ENHANCED SCROLLING */
         .chat-messages {
             flex: 1;
             padding: 24px;
             overflow-y: auto;
+            overflow-x: hidden;
             background: #f8fafc;
             display: flex;
             flex-direction: column;
             gap: 16px;
             min-height: 0;
+            max-height: calc(100vh - 300px);
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f1f1f1;
         }
 
         .chat-message {
@@ -243,8 +257,10 @@
             padding: 12px 16px;
             border-radius: 12px;
             word-wrap: break-word;
+            word-break: break-word;
             line-height: 1.5;
             position: relative;
+            flex-shrink: 0;
         }
 
         .chat-message.user {
@@ -319,15 +335,19 @@
 
         /* Chat Input */
         .chat-input-container {
-            padding: 20px 24px;
+            padding: 16px 20px;
             background: white;
             border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 100;
         }
 
         .chat-input-group {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: flex-end;
+            flex-wrap: wrap;
         }
 
         .chat-input {
@@ -335,12 +355,14 @@
             padding: 12px 16px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px; /* Prevents zoom on iOS */
             resize: none;
             min-height: 44px;
             max-height: 120px;
             font-family: inherit;
             transition: all 0.2s ease;
+            width: 100%;
+            min-width: 0;
         }
 
         .chat-input:focus {
@@ -368,13 +390,20 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        
+        /* Hide download text on mobile */
+        @media (max-width: 480px) {
+            .download-text {
+                display: none;
+            }
+        }
 
         /* Buttons */
         button[data-primary] {
             background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
             font-weight: 500;
             font-size: 14px;
@@ -384,6 +413,9 @@
             align-items: center;
             gap: 8px;
             box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
         }
 
         button[data-primary]:hover:not(:disabled) {
@@ -396,7 +428,7 @@
             background: rgba(255, 255, 255, 0.9);
             color: #4a5568;
             border: 1px solid #e2e8f0;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
             font-weight: 500;
             font-size: 14px;
@@ -405,6 +437,9 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
         }
 
         button[data-secondary]:hover {
@@ -416,7 +451,7 @@
             background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
             font-weight: 500;
             font-size: 14px;
@@ -426,6 +461,9 @@
             align-items: center;
             gap: 8px;
             box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
         }
 
         button[data-danger]:hover {
@@ -574,69 +612,328 @@
             font-family: inherit;
         }
 
-        /* Responsive Design */
+        /* Enhanced Responsive Design */
         @media (max-width: 768px) {
+            body {
+                font-size: 16px; /* Better readability on mobile */
+            }
+            
             .scenario-header {
-                flex-direction: column;
-                gap: 16px;
-                align-items: flex-start;
+                padding: 16px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+            
+            .scenario-info h2 {
+                font-size: 20px;
+            }
+            
+            .scenario-info p {
+                font-size: 12px;
             }
             
             .scenario-actions {
                 width: 100%;
-                justify-content: flex-start;
+                display: flex;
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+            
+            .scenario-actions button {
+                flex: 1;
+                padding: 10px 12px;
+                font-size: 13px;
+                min-height: 40px;
+            }
+            
+            .scenario-actions button i {
+                display: none; /* Hide icons on mobile to save space */
             }
             
             .main-chat-container {
                 flex-direction: column;
+                height: calc(100vh - 80px);
             }
             
+            /* Mobile Staff Panel - Horizontal scroll */
             .staff-panel {
                 width: 100%;
-                max-height: 200px;
+                padding: 12px 16px;
                 border-right: none;
                 border-bottom: 1px solid #e2e8f0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                flex-shrink: 0;
+                max-height: 120px;
+            }
+            
+            .staff-panel h3 {
+                display: none; /* Hide header on mobile */
             }
             
             #staff-list {
                 flex-direction: row;
-                overflow-x: auto;
                 gap: 8px;
                 padding-bottom: 4px;
+                flex-wrap: nowrap;
             }
             
             .staff-item {
-                min-width: 180px;
+                min-width: 140px;
                 flex-shrink: 0;
+                padding: 12px;
+                white-space: nowrap;
+            }
+            
+            .staff-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+            
+            .staff-name {
+                font-size: 13px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .staff-role {
+                font-size: 11px;
+            }
+            
+            /* Mobile Chat Area */
+            .chat-area {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .chat-header {
+                padding: 12px 16px;
+                font-size: 14px;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
             }
             
             .chat-messages {
                 padding: 16px;
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .chat-message {
+                max-width: 85%;
+                font-size: 15px;
+                padding: 10px 14px;
+            }
+            
+            .message-staff-tag {
+                font-size: 10px;
+            }
+            
+            /* Mobile Chat Input */
+            .chat-input-container {
+                padding: 12px 16px;
+                position: sticky;
+                bottom: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            }
+            
+            .chat-input-group {
+                gap: 6px;
+            }
+            
+            .chat-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 10px 14px;
+                min-height: 40px;
+            }
+            
+            #send-btn {
+                padding: 10px 16px;
+                min-width: 70px;
+                font-size: 13px;
+            }
+            
+            #download-transcript-btn {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            
+            #download-transcript-btn i {
+                margin: 0; /* Icon only on mobile */
+            }
+            
+            #download-transcript-btn::after {
+                content: none; /* Hide text on mobile */
+            }
+            
+            /* Mobile Modal Adjustments */
+            [data-modal] {
+                padding: 16px;
+            }
+            
+            [data-modal] > div {
+                max-width: 100%;
+                max-height: 90vh;
+                margin: 0;
+            }
+            
+            [data-modal] header {
+                padding: 16px;
+            }
+            
+            [data-modal] header h3 {
+                font-size: 16px;
+            }
+            
+            [data-modal] .body {
+                padding: 16px;
+                max-height: calc(90vh - 120px);
+            }
+            
+            [data-modal] footer {
+                padding: 16px;
+                gap: 8px;
+            }
+            
+            /* Mobile Form Adjustments */
+            input, textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 10px 14px;
+            }
+            
+            /* Chat placeholder adjustments */
+            .chat-placeholder {
+                padding: 20px;
+                font-size: 14px;
+            }
+            
+            .chat-placeholder i {
+                font-size: 36px;
+            }
+            
+            /* Alert positioning for mobile */
+            .alert {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                min-width: auto;
+                max-width: calc(100vw - 40px);
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 480px) {
+            .scenario-actions button {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            
+            .staff-item {
+                min-width: 120px;
+                padding: 10px;
+            }
+            
+            .chat-message {
+                max-width: 90%;
+                font-size: 14px;
+            }
+            
+            #send-btn span {
+                display: none; /* Hide "Send" text, keep icon only */
+            }
+        }
+        
+        /* Landscape orientation adjustments */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .scenario-header {
+                padding: 10px 16px;
+            }
+            
+            .scenario-info h2 {
+                font-size: 18px;
+                margin-bottom: 2px;
+            }
+            
+            .staff-panel {
+                max-height: 80px;
+                padding: 8px 16px;
+            }
+            
+            .chat-header {
+                padding: 8px 16px;
+            }
+            
+            .chat-messages {
+                padding: 12px;
             }
             
             .chat-input-container {
-                padding: 16px;
+                padding: 8px 16px;
+            }
+        }
+        
+        /* iOS specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            /* Fix for iOS Safari bottom bar */
+            .chat-interface {
+                height: 100vh;
+                height: -webkit-fill-available;
+            }
+            
+            .main-chat-container {
+                height: calc(100vh - 80px);
+                height: calc(-webkit-fill-available - 80px);
             }
         }
 
-        /* Scrollbar Styling */
+        /* Enhanced Scrollbar Styling */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
+            background: #f1f5f9;
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb {
             background: #cbd5e0;
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0;
+            background: #9ca3af;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e0;
+        }
+        
+        /* Smooth scrolling for mobile */
+        .chat-messages,
+        .staff-panel {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Alert Styles */
@@ -727,11 +1024,11 @@
                                    disabled>
                             <button data-primary onclick="sendMessage()" id="send-btn" disabled>
                                 <i class="fas fa-paper-plane"></i>
-                                Send
+                                <span>Send</span>
                             </button>
-                            <button data-danger onclick="downloadTranscriptRTF()" id="download-transcript-btn">
+                            <button data-danger onclick="downloadTranscriptRTF()" id="download-transcript-btn" title="Download Transcript">
                                 <i class="fas fa-download"></i>
-                                Download
+                                <span class="download-text">Download</span>
                             </button>
                         </div>
                     </div>
@@ -759,7 +1056,7 @@
         // Available colors for staff members (muted but distinguishable)
         const STAFF_COLORS = ['blue', 'green', 'purple', 'orange', 'pink', 'teal', 'yellow', 'red'];
 
-        // Default scenarios data
+        // Default scenarios data - LISA PARK REMOVED
         const defaultScenarios = [
             {
                 id: 'lab-timing-delays',
@@ -786,13 +1083,6 @@
                         occupation: 'Phlebotomist',
                         attitude: 'Smart, competent and busy. They have a lot to do and are a little annoyed that night team doesn\'t help out more. That being said, they are professional, want to see improvement and clearly understand the system.',
                         knowledge: 'All blood draws and IVs are done by a phlebotomy team and not by bedside nurses per our union contract. Phlebotomy staffing is split into two shifts, night and day shift, both of which are 12-hour shifts that begin at either 5:00 AM or 5:00 PM. Five phlebotomists are assigned to the night shift, ten are assigned to day shift. We\'re a bit short-staffed right now as four phlebotomists recently retired and their spots are still empty. In the past 6 months, on an average morning, we draw blood from 150 patients each morning. Morning labs are ordered by the provider for the "0530 draw". This is just an average time of when blood is drawn, obviously not every lab is done right at 0530. When day phlebotomy team arrives at 5:00 AM, we get our assignment, prep the lab draw cart which takes about 15-20 minutes in the supply room and head off to begin collections by 5:30 AM. We each draw our list of patients which typically is done by ward. We do get interrupted sometimes by Stat draws. We have to stop what we are doing and go do the stat draw. This causes quite a bit of interruption to our workflow and my nurse colleagues tell me it\'s just because the provider forgot to order labs. I wished they realized how much this interrupts our mornings and delays everything. The night phlebotomy team is on until 5:00am and lab draws are supposed to start at 4:00 AM. This means there is an hour of night shift they can help-out. However, it\'s poorly managed and there are no real rules. Typically, the night shift phlebotomists each choose five patients at their own discretion on which to draw labs. The night shift phlebotomists cherry pick the easy patients. You know, the patients with a central line or something. They also "count" an attempted draw, even if they were not successful. They may only end up getting blood from 3 patients with central lines and have 2 "attempts" and they are done. It ultimately means they provide almost no help with the morning draw volume, it\'s all left to day team.'    
-                    },
-                    {
-                        id: 'nurse-001',
-                        name: 'Lisa Park',
-                        occupation: 'Nurse',
-                        attitude: 'Helpful but befuddled. They don\'t do this work and have little to offer.',
-                        knowledge: 'Happy to help but to be honest I don\'t know that much. Per our union contract all blood draws are done by phlebotomy and not bedside nurses on the medical and surgical floors. This is not true for the ICU or the ED, those nurses draw their own labs. But for floor patients, phlebotomy does it. Yes, phlebotomy draws off ports and PICC lines. However if they cannot get a blood draw we do have a special nurse run "Complex IV team" which can help place PICCS or do ultrasound guided blood draws and IV placement if phlebotomy can\'t get blood.'
                     },
                     {
                         id: 'phlebotomy-manager-001',
@@ -906,10 +1196,54 @@
             // Load scenarios from localStorage or use defaults
             state.scenarios = loadFromStorage('qi-scenarios', defaultScenarios);
             
+            // Mobile-specific optimizations
+            if (isMobile()) {
+                initializeMobileFeatures();
+            }
+            
             await loadScenarios();
             initializeInterface();
             console.log('Quality Improvement Training - Single Chat Interface initialized');
         });
+        
+        // Check if device is mobile
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                   || window.innerWidth <= 768;
+        }
+        
+        // Initialize mobile-specific features
+        function initializeMobileFeatures() {
+            // Prevent pull-to-refresh on mobile
+            document.body.addEventListener('touchmove', function(e) {
+                if (e.target.closest('.chat-messages') || e.target.closest('.staff-panel')) {
+                    return; // Allow scrolling in these areas
+                }
+                if (document.body.scrollTop === 0) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Handle virtual keyboard
+            const messageInput = document.getElementById('message-input');
+            if (messageInput) {
+                messageInput.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        window.scrollTo(0, 0);
+                        document.body.scrollTop = 0;
+                    }, 300);
+                });
+                
+                // Auto-resize input on mobile
+                messageInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                });
+            }
+            
+            // Improve touch responsiveness
+            document.addEventListener('touchstart', function() {}, { passive: true });
+        }
 
         // Load available scenarios
         async function loadScenarios() {
@@ -1041,7 +1375,7 @@
             }
         }
 
-        // Render all messages in chronological order
+        // Render all messages in chronological order - ENHANCED FOR SCROLLING
         function renderAllMessages() {
             const chatMessages = document.getElementById('chat-messages');
             
@@ -1085,7 +1419,14 @@
             }
             
             chatMessages.innerHTML = html;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Auto-scroll to bottom with smooth behavior
+            setTimeout(() => {
+                chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
         }
 
         // Handle chat input key press
@@ -1228,13 +1569,15 @@ IMPORTANT RULES:
                 <div style="margin-bottom: 20px;">
                     <p style="color: #718096; margin-bottom: 20px;">Choose a training scenario to begin your investigation:</p>
                     ${state.scenarios.map(scenario => `
-                        <div style="margin-bottom: 12px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" 
+                        <div class="scenario-option" style="margin-bottom: 12px; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s; min-height: 80px;" 
                              onclick="selectScenarioFromModal('${scenario.id}')"
+                             ontouchstart="this.style.background='#f0f9ff'; this.style.borderColor='#4299e1';"
+                             ontouchend="this.style.background='white'; this.style.borderColor='#e2e8f0';"
                              onmouseover="this.style.background='#f7fafc'; this.style.borderColor='#4299e1';"
                              onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0';">
-                            <div style="font-weight: 600; color: #1a202c; margin-bottom: 4px;">${scenario.name}</div>
-                            <div style="font-size: 12px; color: #718096; margin-bottom: 8px;">${scenario.characters.length} staff members to interview</div>
-                            <div style="color: #4a5568; font-size: 14px;">${scenario.description || 'No description provided'}</div>
+                            <div style="font-weight: 600; color: #1a202c; margin-bottom: 4px; font-size: 16px;">${scenario.name}</div>
+                            <div style="font-size: 13px; color: #4299e1; font-weight: 500; margin-bottom: 8px;">${scenario.characters.length} staff members to interview</div>
+                            <div style="color: #4a5568; font-size: 14px; line-height: 1.4;">${scenario.description || 'No description provided'}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -1378,6 +1721,28 @@ IMPORTANT RULES:
                 hideModal();
             }
         });
+        
+        // Handle orientation change and window resize
+        let resizeTimer;
+        function handleResize() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Adjust chat messages height on resize
+                const chatMessages = document.getElementById('chat-messages');
+                if (chatMessages && state.allMessages.length > 0) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                // Re-initialize mobile features if needed
+                if (isMobile() && !document.body.hasAttribute('data-mobile-initialized')) {
+                    initializeMobileFeatures();
+                    document.body.setAttribute('data-mobile-initialized', 'true');
+                }
+            }, 250);
+        }
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
     </script>
 </body>
 </html>

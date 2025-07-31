@@ -1392,6 +1392,11 @@
                 messageInput.addEventListener('input', function() {
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+                    // Always scroll chat-messages to bottom when input resizes
+                    const chatMessages = document.getElementById('chat-messages');
+                    if (chatMessages) {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
                 });
             }
             

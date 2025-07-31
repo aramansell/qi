@@ -229,6 +229,12 @@
             align-items: center;
             gap: 8px;
             flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-header[style*="display: none"] + .chat-messages {
+            /* When header is hidden, expand messages area */
+            height: calc(100% - 80px); /* Subtract only the input container height */
         }
 
         .chat-header::before {
@@ -616,12 +622,28 @@
         @media (max-width: 768px) {
             body {
                 font-size: 16px; /* Better readability on mobile */
+                overflow: hidden; /* Prevent body scrolling */
+                position: fixed;
+                width: 100%;
+                height: 100vh;
+            }
+            
+            main {
+                height: 100vh;
+                overflow: hidden;
+            }
+            
+            .chat-interface {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
             }
             
             .scenario-header {
                 padding: 16px;
-                position: sticky;
-                top: 0;
+                flex-shrink: 0;
+                position: relative;
                 z-index: 1000;
             }
             
@@ -635,10 +657,12 @@
             
             .main-chat-container {
                 flex-direction: column;
-                height: calc(100vh - 60px);
+                flex: 1;
+                overflow: hidden;
+                display: flex;
             }
             
-            /* Mobile Staff Panel - Horizontal scroll */
+            /* Mobile Staff Panel - Always visible at top */
             .staff-panel {
                 width: 100%;
                 padding: 12px 16px;
@@ -648,7 +672,8 @@
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
                 flex-shrink: 0;
-                max-height: 80px;
+                height: auto;
+                max-height: none;
             }
             
             .staff-panel h3 {
@@ -673,21 +698,34 @@
                 font-size: 13px;
             }
             
-            /* Mobile Chat Area */
+            /* Mobile Chat Area - Fixed layout */
             .chat-area {
                 flex: 1;
-                min-height: 0;
                 display: flex;
                 flex-direction: column;
+                overflow: hidden;
+                min-height: 0;
             }
             
             .chat-header {
                 padding: 12px 16px;
                 font-size: 14px;
-                position: sticky;
-                top: 0;
+                flex-shrink: 0;
                 z-index: 10;
                 background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                transition: all 0.3s ease;
+            }
+            
+            /* When header is hidden on mobile, expand chat messages */
+            .chat-header[style*="display: none"] {
+                padding: 0;
+                margin: 0;
+                border: none;
+            }
+            
+            .chat-header[style*="display: none"] + .chat-messages {
+                /* Take up the space freed by hidden header */
+                flex: 1;
             }
             
             .chat-messages {
@@ -695,6 +733,8 @@
                 flex: 1;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
+                min-height: 0;
+                scrollbar-width: thin;
             }
             
             .chat-message {
@@ -707,13 +747,13 @@
                 font-size: 10px;
             }
             
-            /* Mobile Chat Input */
+            /* Mobile Chat Input - Always visible at bottom */
             .chat-input-container {
                 padding: 12px 16px;
-                position: sticky;
-                bottom: 0;
+                flex-shrink: 0;
                 background: white;
                 box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+                border-top: 1px solid #e2e8f0;
             }
             
             .chat-input-group {
@@ -835,7 +875,6 @@
             }
             
             .staff-panel {
-                max-height: 60px;
                 padding: 8px 16px;
             }
             
@@ -850,19 +889,46 @@
             .chat-input-container {
                 padding: 8px 16px;
             }
+            
+            /* Keep the fixed layout in landscape too */
+            body {
+                position: fixed;
+                overflow: hidden;
+            }
+            
+            .main-chat-container {
+                overflow: hidden;
+            }
         }
         
         /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
             /* Fix for iOS Safari bottom bar */
+            body {
+                height: 100vh;
+                height: -webkit-fill-available;
+            }
+            
+            main {
+                height: 100vh;
+                height: -webkit-fill-available;
+            }
+            
             .chat-interface {
                 height: 100vh;
                 height: -webkit-fill-available;
             }
             
-            .main-chat-container {
-                height: calc(100vh - 60px);
-                height: calc(-webkit-fill-available - 60px);
+            @media (max-width: 768px) {
+                .main-chat-container {
+                    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 80px);
+                    height: calc(-webkit-fill-available - 80px);
+                }
+                
+                /* Adjust for safe areas */
+                .chat-input-container {
+                    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+                }
             }
         }
 
@@ -1156,6 +1222,12 @@
             // Load scenarios from localStorage or use defaults
             state.scenarios = loadFromStorage('qi-scenarios', defaultScenarios);
             
+            // Clear all conversations on page reload
+            for (let scenario of state.scenarios) {
+                const conversationKey = `qi-conversations-${scenario.id}`;
+                localStorage.removeItem(conversationKey);
+            }
+            
             // Mobile-specific optimizations
             if (isMobile()) {
                 initializeMobileFeatures();
@@ -1174,23 +1246,32 @@
         
         // Initialize mobile-specific features
         function initializeMobileFeatures() {
-            // Prevent pull-to-refresh on mobile
+            // Prevent pull-to-refresh and body scrolling on mobile
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100vh';
+            document.body.style.overflow = 'hidden';
+            
+            // Allow scrolling only in specific areas
             document.body.addEventListener('touchmove', function(e) {
                 if (e.target.closest('.chat-messages') || e.target.closest('.staff-panel')) {
                     return; // Allow scrolling in these areas
                 }
-                if (document.body.scrollTop === 0) {
-                    e.preventDefault();
-                }
+                e.preventDefault(); // Prevent scrolling elsewhere
             }, { passive: false });
             
             // Handle virtual keyboard
             const messageInput = document.getElementById('message-input');
             if (messageInput) {
                 messageInput.addEventListener('focus', function() {
+                    // Don't scroll the page when keyboard appears
                     setTimeout(() => {
-                        window.scrollTo(0, 0);
-                        document.body.scrollTop = 0;
+                        if (window.visualViewport) {
+                            const chatMessages = document.getElementById('chat-messages');
+                            if (chatMessages) {
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }
+                        }
                     }, 300);
                 });
                 
@@ -1203,6 +1284,18 @@
             
             // Improve touch responsiveness
             document.addEventListener('touchstart', function() {}, { passive: true });
+            
+            // Handle viewport changes (keyboard show/hide)
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    const mainContainer = document.querySelector('.main-chat-container');
+                    if (mainContainer) {
+                        const viewportHeight = window.visualViewport.height;
+                        const headerHeight = document.querySelector('.scenario-header').offsetHeight;
+                        mainContainer.style.height = `${viewportHeight - headerHeight}px`;
+                    }
+                });
+            }
         }
 
         // Load available scenarios
@@ -1230,9 +1323,8 @@
                     // Assign colors to staff members
                     assignStaffColors(state.staffMembers);
                     
-                    // Load conversations from localStorage
-                    const conversationKey = `qi-conversations-${scenarioId}`;
-                    state.allMessages = loadFromStorage(conversationKey, []);
+                    // Start with empty conversations (since we clear on reload)
+                    state.allMessages = [];
                     
                     updateScenarioHeader();
                     renderStaffList();
@@ -1304,6 +1396,7 @@
             const sendBtn = document.getElementById('send-btn');
             
             if (!state.currentStaff) {
+                chatHeader.style.display = 'block';
                 chatHeader.innerHTML = '<span>Select a role to begin interview</span>';
                 messageInput.disabled = true;
                 sendBtn.disabled = true;
@@ -1319,7 +1412,14 @@
                     renderAllMessages();
                 }
             } else {
-                chatHeader.innerHTML = `<span>Now interviewing ${state.currentStaff.occupation}</span>`;
+                // Only show header if no messages have been sent yet
+                if (state.allMessages.length === 0) {
+                    chatHeader.style.display = 'block';
+                    chatHeader.innerHTML = `<span>Now interviewing ${state.currentStaff.occupation}</span>`;
+                } else {
+                    // Hide the header completely after first message
+                    chatHeader.style.display = 'none';
+                }
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
                 renderAllMessages();
@@ -1500,6 +1600,7 @@ IMPORTANT RULES:
             
             state.isLoading = false;
             renderAllMessages();
+            renderChatArea(); // Update header after sending message
             
             // Save updated conversations to localStorage
             saveToStorage(conversationKey, state.allMessages);

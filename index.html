@@ -46,6 +46,7 @@
 
         /* Scenario Header */
         .scenario-header {
+            display: none;
             background: rgba(255, 255, 255, 0.95);
             border-bottom: 1px solid #e2e8f0;
             padding: 20px 24px;
@@ -1114,8 +1115,10 @@
             <!-- Scenario Selection Header -->
             <div class="scenario-header">
                 <div class="scenario-info">
+                    
                     <h2 id="current-scenario-name">Select a Scenario</h2>
                     <p id="current-scenario-description">Choose a training scenario to begin interviewing staff</p>
+                    
                 </div>
             </div>
 
@@ -1428,7 +1431,7 @@
                 if (scenario) {
                     state.currentScenario = scenario;
                     state.staffMembers = [...scenario.characters];
-                    state.currentStaff = null;
+                    state.currentStaff = scenario.characters[0] || null; // Default to first staff member   
                     
                     // Assign colors to staff members
                     assignStaffColors(state.staffMembers);
@@ -1440,10 +1443,11 @@
                     renderStaffList();
                     renderChatArea();
                     
-                    showAlert(`Scenario "${scenario.name}" loaded successfully!`, 'success');
+                    //showAlert(`Scenario "${scenario.name}" loaded successfully!`, 'success');
                 } else {
                     showAlert('Failed to load scenario', 'error');
                 }
+                    
             } catch (error) {
                 console.error('Error loading scenario:', error);
                 showAlert('Error loading scenario', 'error');
@@ -1525,7 +1529,7 @@
                 // Only show header if no messages have been sent yet
                 if (state.allMessages.length === 0) {
                     chatHeader.style.display = 'block';
-                    chatHeader.innerHTML = `<span>Now interviewing ${state.currentStaff.occupation}</span>`;
+                    chatHeader.innerHTML = `<span>There have been delays with morning labs not being drawn and reported in a timely manner. Interview the employees and when you are done interviewing be sure to download the transcript. You can change who you are interviewing by selecting their title from the choices. You can switch as many times as you need to gather the relevent information. The physician is ready to be interviewed or you may chose a different person and begin.</span>`;
                 } else {
                     // Hide the header completely after first message
                     chatHeader.style.display = 'none';

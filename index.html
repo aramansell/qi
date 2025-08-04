@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Quality Improvement Training</title>
@@ -47,6 +47,9 @@
             display: flex;
             flex-direction: column;
             height: calc(var(--vh, 1vh) * 100);
+            height: 100dvh; /* Use dynamic viewport height as fallback */
+            position: relative;
+            overflow: hidden;
         }
 
         /* Scenario Header */
@@ -81,6 +84,7 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            min-height: 0; /* Important for flexbox children */
         }
 
         /* Staff Panel */
@@ -356,6 +360,8 @@
             flex-shrink: 0;
             position: relative;
             z-index: 100;
+            /* iOS safe area support */
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
         }
 
         .chat-input-group {
@@ -639,6 +645,9 @@
                 height: calc(var(--vh, 1vh) * 100);
                 margin: 0;
                 padding: 0;
+                /* iOS specific */
+                -webkit-overflow-scrolling: touch;
+                touch-action: manipulation;
             }
             
             main {
@@ -648,6 +657,7 @@
                 overflow: hidden;
                 display: flex;
                 flex-direction: column;
+                position: relative;
             }
             
             .chat-interface {
@@ -655,6 +665,7 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                position: relative;
             }
             
             .scenario-header {
@@ -785,6 +796,13 @@
                 min-height: 60px;
                 display: flex;
                 align-items: center;
+                /* iOS fixes */
+                position: sticky;
+                bottom: 0;
+                z-index: 1000;
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+                width: 100%;
             }
             
             .chat-input-group {
@@ -878,12 +896,45 @@
             }
         }
         
-        /* Extra small devices */
+        /* Extra small devices and iPhone specific */
         @media (max-width: 480px) {
             /* Ensure proper initial layout on very small screens */
             body, main, .chat-interface {
                 height: calc(var(--vh, 1vh) * 100);
                 max-height: -webkit-fill-available;
+            }
+            
+            /* Ensure chat area uses flexbox properly */
+            .main-chat-container {
+                flex: 1 1 0;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .chat-area {
+                flex: 1 1 0;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+            }
+            
+            .chat-messages {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Ensure input container is always visible */
+            .chat-input-container {
+                flex: 0 0 auto;
+                position: relative;
+                z-index: 2000;
+                background: white;
+                /* Add safe area padding for devices with home indicator */
+                padding-bottom: max(8px, env(safe-area-inset-bottom));
             }
             
             .scenario-header {
@@ -1000,18 +1051,41 @@
         @supports (-webkit-touch-callout: none) {
             /* Fix for iOS Safari bottom bar */
             body {
-                height: 100vh;
-                height: -webkit-fill-available;
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+                height: 100%;
             }
             
             main {
-                height: 100vh;
-                height: -webkit-fill-available;
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+                height: 100%;
             }
             
             .chat-interface {
-                height: 100vh;
-                height: -webkit-fill-available;
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+                height: 100%;
+            }
+            
+            /* Force chat area to use available space properly */
+            .chat-area {
+                min-height: 0;
+                flex: 1 1 auto;
+            }
+            
+            .chat-messages {
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+            
+            /* Ensure chat input is always visible */
+            .chat-input-container {
+                position: sticky;
+                bottom: 0;
+                z-index: 1000;
+                background: white;
+                padding-bottom: env(safe-area-inset-bottom, 0px);
             }
             
             @media (max-width: 768px) {
@@ -1021,12 +1095,28 @@
                 }
                 
                 .chat-input-container {
-                    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+                    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+                    padding-left: calc(12px + env(safe-area-inset-left, 0px));
+                    padding-right: calc(12px + env(safe-area-inset-right, 0px));
                 }
                 
                 /* Ensure proper height calculation with safe areas */
                 .main-chat-container {
                     height: 100%;
+                    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+                }
+                
+                /* Fix for iOS keyboard */
+                .chat-interface {
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                /* Ensure messages area can shrink when keyboard appears */
+                .chat-messages {
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
+                    overscroll-behavior: contain;
                 }
             }
         }
@@ -1314,12 +1404,41 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Set viewport height CSS variable for mobile (fixes keyboard push issue)
             const setViewportHeight = () => {
-                const vh = window.innerHeight * 0.01;
+                // First we get the viewport height and we multiple it by 1% to get a value for a vh unit
+                let vh = window.innerHeight * 0.01;
+                // Then we set the value in the --vh custom property to the root of the document
                 document.documentElement.style.setProperty('--vh', `${vh}px`);
+                
+                // Additional iOS fix - ensure body and main have correct height
+                if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                    // Use visualViewport if available (better for iOS)
+                    if (window.visualViewport) {
+                        vh = window.visualViewport.height * 0.01;
+                        document.documentElement.style.setProperty('--vh', `${vh}px`);
+                    }
+                    
+                    // Force reflow for iOS
+                    document.body.style.height = `${window.innerHeight}px`;
+                    setTimeout(() => {
+                        document.body.style.height = '';
+                    }, 100);
+                }
             };
+            
             setViewportHeight();
             window.addEventListener('resize', setViewportHeight);
             window.addEventListener('orientationchange', setViewportHeight);
+            
+            // iOS specific - handle visual viewport changes
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setViewportHeight);
+                window.visualViewport.addEventListener('scroll', (e) => {
+                    // Prevent viewport from scrolling when keyboard appears
+                    if (e.target.offsetTop !== 0) {
+                        window.scrollTo(0, 0);
+                    }
+                });
+            }
         
             // Extract API key from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
@@ -1357,10 +1476,45 @@
         // Initialize mobile-specific features
         function initializeMobileFeatures() {
             // Prevent pull-to-refresh and body scrolling on mobile
-            // document.body.style.position = 'fixed';
             document.body.style.width = '100%';
-            // document.body.style.height = '100vh';
             document.body.style.overflow = 'hidden';
+            document.body.style.webkitOverflowScrolling = 'touch';
+            
+            // iOS specific fixes
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                // Prevent elastic bounce on iOS
+                document.body.addEventListener('touchmove', function(e) {
+                    if (!e.target.closest('.chat-messages') && !e.target.closest('.staff-panel')) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                // Fix for iOS keyboard pushing content up
+                const fixIOSViewport = () => {
+                    const activeElement = document.activeElement;
+                    if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                        // Input is focused, ensure chat container is properly sized
+                        setTimeout(() => {
+                            const chatInterface = document.querySelector('.chat-interface');
+                            if (chatInterface && window.visualViewport) {
+                                chatInterface.style.height = `${window.visualViewport.height}px`;
+                            }
+                        }, 300);
+                    }
+                };
+                
+                document.addEventListener('focusin', fixIOSViewport);
+                document.addEventListener('focusout', () => {
+                    // Reset height when keyboard is hidden
+                    setTimeout(() => {
+                        const chatInterface = document.querySelector('.chat-interface');
+                        if (chatInterface) {
+                            chatInterface.style.height = '';
+                        }
+                        window.scrollTo(0, 0);
+                    }, 300);
+                });
+            }
             
             // Allow scrolling only in specific areas
             // document.body.addEventListener('touchmove', function(e) {

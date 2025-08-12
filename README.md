@@ -49,7 +49,6 @@ http://localhost:3001/educator/
 3. **Add Characters:**
    - Click the "➕ Add Character" button to add a new character
    - For each character, provide:
-     - **Name**: The character's full name
      - **Occupation/Role**: Their job title (e.g., Physician, Lab Tech, Nurse Manager)
      - **Attitude/Personality**: How they behave and respond to questions
      - **Knowledge/Information**: What they know about the quality issue
@@ -90,7 +89,6 @@ const SCENARIO_CONFIG = {
     characters: [
         {
             id: 'unique-id-1',
-            name: 'Dr. Sarah Chen',
             occupation: 'Physician',
             attitude: 'Frustrated but helpful...',
             knowledge: 'Lab results should be back by 7:30 AM...'

@@ -328,11 +328,6 @@
                 </div>
                 <div class="character-fields">
                     <div class="form-group">
-                        <label for="charName-${characterCount}">Name *</label>
-                        <input type="text" id="charName-${characterCount}" name="charName-${characterCount}" required 
-                               placeholder="e.g., Dr. Sarah Chen">
-                    </div>
-                    <div class="form-group">
                         <label for="charOccupation-${characterCount}">Occupation/Role *</label>
                         <input type="text" id="charOccupation-${characterCount}" name="charOccupation-${characterCount}" required 
                                placeholder="e.g., Physician, Lab Tech, Nurse Manager">
@@ -441,8 +436,6 @@
             let isValid = true;
             characterCards.forEach((card, index) => {
                 const num = index + 1;
-                const name = card.querySelector(`[name="charName-${num}"]`)?.value || 
-                           card.querySelector(`input[id^="charName"]`)?.value;
                 const occupation = card.querySelector(`[name="charOccupation-${num}"]`)?.value || 
                                  card.querySelector(`input[id^="charOccupation"]`)?.value;
                 const attitude = card.querySelector(`[name="charAttitude-${num}"]`)?.value || 
@@ -450,14 +443,13 @@
                 const knowledge = card.querySelector(`[name="charKnowledge-${num}"]`)?.value || 
                                 card.querySelector(`textarea[id^="charKnowledge"]`)?.value;
 
-                if (!name || !occupation || !attitude || !knowledge) {
+                if (!occupation || !attitude || !knowledge) {
                     isValid = false;
                     return;
                 }
 
                 characters.push({
                     id: generateId(),
-                    name: name.trim(),
                     occupation: occupation.trim(),
                     attitude: attitude.trim(),
                     knowledge: knowledge.trim()

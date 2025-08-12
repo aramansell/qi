@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Quality Improvement Training</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 
 </head>
 <body>
@@ -75,39 +75,39 @@
         // ========================================
         // Update this section for each scenario
         const SCENARIO_CONFIG = {
-            id: 'lab-timing-delays',
-            name: 'Lab Timing Delays Investigation',
-            description: 'Investigate why morning labs are not being drawn and reported in a timely manner.',
-            characters: [
-                {
-                    id: 'physician-001',
-                    name: 'Dr. Sarah Chen',
-                    occupation: 'Physician',
-                    attitude: 'Just want to see things fixed and don\'t understand why they are so broken. Helpful however they can but have limited knowledge outside of knowing it makes their job harder.',
-                    knowledge: 'Lab results are supposed to be back by 7:30 AM per hospital policy. Lab delays are happening per the opinion of physicians and it is affecting their ability to provide medical care. I put in at least two patient safety reports. One patient\'s discharge was delayed because the only ride available left before we had morning lab results. Another patient had to receive his medications much later in the day because of lab delays that I needed for dosing. In general, I think lab delays are happening more frequently. I typically get sign out around 7:15 AM, so if I could have all results back by 7:30 AM I would have all the information I need when I start rounds.'
-                },
-                {
-                    id: 'lab-tech-001',
-                    name: 'Mike Rodriguez',
-                    occupation: 'Lab Tech',
-                    attitude: 'No nonsense, succinct, they understand the system and directly and clearly answer questions.',
-                    knowledge: 'When specimens arrive, I remove them from the pneumatic tube and stack all of them in the lab analyzer. The analyzer reads the barcode and performs the appropriate test. The analyzer takes 35 minutes to run a CBC and 42 minutes to run a BMP. Once analyzed, a lab tech will confirm the results, look for suspicious outliers, and release the report to the electronic medical record which on average takes 4-5 minutes from the time the analyzer finishes. I have data on how long everything takes in our lab. Overall, it takes 47 minutes to result a BMP & 39 minutes to result a CBC from the time we receive the blood until the time it is reported in the medical record. Plus, we have a very low standard deviation of only +/-3 minutes. Which means the delays in labs being reported on time doesn\'t stem from us. We are pretty consistent and don\'t have a lot we can change given the fixed time it takes the analyzer to run. Furthermore, our analyzers are top tier, you can\'t get much faster than these machines go! These machines can handle a lot of labs. I don\'t think it would be a big deal for the instrument, but we may need to adjust our staffing if that was occurring really early in the morning since we don\'t have very many techs on from midnight until 5:30 AM. If too many labs came in before 5:30 AM we might need to hire more techs.'
-                },
-                {
-                    id: 'phlebotomist-001',
-                    name: 'Jennifer Williams',
-                    occupation: 'Phlebotomist',
-                    attitude: 'Smart, competent and busy. They have a lot to do and are a little annoyed that night team doesn\'t help out more. That being said, they are professional, want to see improvement and clearly understand the system.',
-                    knowledge: 'All blood draws and IVs are done by a phlebotomy team and not by bedside nurses per our union contract. Phlebotomy staffing is split into two shifts, night and day shift, both of which are 12-hour shifts that begin at either 5:00 AM or 5:00 PM. Five phlebotomists are assigned to the night shift, ten are assigned to day shift. We\'re a bit short-staffed right now as four phlebotomists recently retired and their spots are still empty. In the past 6 months, on an average morning, we draw blood from 150 patients each morning. Morning labs are ordered by the provider for the "0530 draw". This is just an average time of when blood is drawn, obviously not every lab is done right at 0530. When day phlebotomy team arrives at 5:00 AM, we get our assignment, prep the lab draw cart which takes about 15-20 minutes in the supply room and head off to begin collections by 5:30 AM. We each draw our list of patients which typically is done by ward. We do get interrupted sometimes by Stat draws. We have to stop what we are doing and go do the stat draw. This causes quite a bit of interruption to our workflow and my nurse colleagues tell me it\'s just because the provider forgot to order labs. I wished they realized how much this interrupts our mornings and delays everything. The night phlebotomy team is on until 5:00am and lab draws are supposed to start at 4:00 AM. This means there is an hour of night shift they can help-out. However, it\'s poorly managed and there are no real rules. Typically, the night shift phlebotomists each choose five patients at their own discretion on which to draw labs. The night shift phlebotomists cherry pick the easy patients. You know, the patients with a central line or something. They also "count" an attempted draw, even if they were not successful. They may only end up getting blood from 3 patients with central lines and have 2 "attempts" and they are done. It ultimately means they provide almost no help with the morning draw volume, it\'s all left to day team.'    
-                },
-                {
-                    id: 'phlebotomy-manager-001',
-                    name: 'Bob Thompson',
-                    occupation: 'Phlebotomy Manager',
-                    attitude: 'This character is supposed to be a grumpy curmudgeon. He is 6 months from retirement and not interested in helping if he doesn\'t absolutely have to. He clearly hasn\'t worked to fix any problems as the manager and isn\'t interested in starting unless he must.',
-                    knowledge: 'Morale is pretty low. I think staffing is the major issue. We are chronically short staffed. We had 4 people retire in the past few months. Unfortunately, it takes so long to hire new staff there is often a big delay between staff leaving and the new people starting. Also, our staffing doesn\'t align with the needs of the hospital. I have no clue why shifts start at 5:00 AM which is right in the middle of the AM draw and the busiest time of day for us. Furthermore, because the shifts are 12-hours long we end up having too few people in the morning for the bulk draw when we need them and too many people in the afternoon when things slow down. But changing people\'s schedules pretty much takes an act of congress. Once you are hired the union protections mandate that we give them the shift they were hired for. Maybe we should hire the 4 new replacements for different shifts since the union contract only applies after you are hired... Yes, an even bigger issue is we don\'t have any limits on people overlapping their vacation time. Some folks will schedule their vacation days to align because they know the workload will be higher when someone else if off. One day last month we only had 4 phlebotomist show up for day shift, out of 10!...for the entire hospital. I thought about trying to change the vacation policy but working with the union takes WAY to long. I just gave up. Look, I\'ll be honest. I\'m not a people person. I\'m 6 months from retirement. While I appreciate and welcome the help to try to improve the situation, I\'m not sure it\'s going to do much good. I recently did observations of an entire mornings blood draws and recorded how the phlebotomists spend their time. With so many patients to draw, little delays here and there add up quickly, like having to place an IV, gown up, draw routine blood cultures or the inevitable "stat" lab which requires they drop what they are doing on the AM bulk draw and deal with the stat lab instead. I\'m almost certain most of our early morning stat labs are because one of the docs forgot to order it for the bulk lab draw so they just order it stat instead. It\'s amazing how many 6:30 or 7:00 AM stat labs we get on patients who have no other labs ordered. Very suspicious... and it totally disrupts the bulk draw work-flow because they have to run off and take care of the stat draw and it delays everything else.'
-                }
-            ]
+                  "id": "scenario_c",
+                  "name": "scenario_c",
+                  "description": "Unknown",
+                  "characters": [
+                            {
+                                      "id": "me84rrnjamg3w570d3",
+                                      "name": "Sara",
+                                      "occupation": "Hospitalist",
+                                      "attitude": "No nonsense, succinct, they understand the system and directly and clearly answer questions.",
+                                      "knowledge": "There is a major look happening at why the hospitals length of stay is so long and the project to improve consult timeliness is just part of a bigger picture.\nConsult timing matters to hospital medicine because waiting for recommendations delays patient care and contributes to long lengths of stay\nThe hospital doesn’t currently have a policy but the hospitalists say that it’s usually end of business or the next day for consultant recommendations to be received.\nThe culture of consult timeliness is lax because for many years this was not tracked."
+                            },
+                            {
+                                      "id": "me84rrnj0315lqlsz80s",
+                                      "name": "Grace",
+                                      "occupation": "GI Fellow",
+                                      "attitude": "Smart, competent and busy. They are professional, want to see improvement and clearly understand the system.",
+                                      "knowledge": "Describe the workflow: get paged, discussion, consult order is placed, they chart review, see the patient, staff with the attending, call and provide verbal recommendations, then sign their note.\nThere are no clear “guidelines” at the VA of how long consultants have to turn around a consult. \nHighlight that residents being intermittently present is very problematic and they rely on them to get work done, especially on busy days or days with lots of procedures. \nAttendings are sometimes scheduled elsewhere and not available to staff.\nTeams give late consults, sometimes despite patients being there for some time, and these get pushed to the following day sometimes."
+                            },
+                            {
+                                      "id": "me84rrnjeh8kqsz67ik",
+                                      "name": "Fred",
+                                      "occupation": "Oncology Attending",
+                                      "attitude": "Very busy and pretty short in their responses but not rude. They really feel like it isn’t their problem and something they shouldn’t be burdened with.",
+                                      "knowledge": "They are in clinic for ½ day when on consult service and physically can’t see consults any sooner. \nHospital administrators are needed to change the schedule so they are not scheduled for both clinic and inpatient consult service at the same time"
+                            },
+                            {
+                                      "id": "me84rrnjin7ii2t6rod",
+                                      "name": "George",
+                                      "occupation": "Hospital Administrator",
+                                      "attitude": "This character is supposed to be a grumpy curmudgeon. He is 6 months from retirement and not interested in helping if he doesn’t absolutely have to. He clearly hasn’t worked to fix any problems as an administrator and isn’t interested in starting unless he must.",
+                                      "knowledge": "Trying to make a change that happens across multiple groups/divisions is quite hard as everyone has different needs.\nJust allowing attendings to focus on staffing the inpatient services instead of clinic duties has its own set of challenges including clinic backlog, needing to hire more, and different divisional needs. \nThis administrator is not particularly interested in helping or improving the notable problems and is close to retirement\nHe did do a survey of consultants and found they perceived that consult timing is not late if you base it off verbal recommendations being provided but the hospitalist group disagreed. Otherwise they felt like waiting to staff with the attending and being in a procedure were the most common causes of delays."
+                            }
+                  ]
         };
 
         // Global state management for single chat interface
@@ -417,7 +417,7 @@
                 // Only show header if no messages have been sent yet
                 if (state.allMessages.length === 0) {
                     chatHeader.style.display = 'block';
-                    chatHeader.innerHTML = `<span>There have been delays with morning labs not being drawn and reported in a timely manner. Interview the employees, and when you are done interviewing, be sure to download the transcript. You can change who you are interviewing by selecting their title from the choices. You can switch as many times as needed to gather the relevant information. The physician is ready to be interviewed, or you may choose a different person and begin.</span>`;
+                    chatHeader.innerHTML = `<span>Interview the employees, and when you are done interviewing, be sure to download the transcript. You can change who you are interviewing by selecting their title from the choices. You can switch as many times as needed to gather the relevant information. The hospitalist is ready to be interviewed, or you may choose a different person and begin.</span>`;
                 } else {
                     // Hide the header completely after first message
                     chatHeader.style.display = 'none';

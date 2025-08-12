@@ -417,7 +417,7 @@
                 // Only show header if no messages have been sent yet
                 if (state.allMessages.length === 0) {
                     chatHeader.style.display = 'block';
-                    chatHeader.innerHTML = `<span>Interview the employees, and when you are done interviewing, be sure to download the transcript. You can change who you are interviewing by selecting their title from the choices. You can switch as many times as needed to gather the relevant information. The hospitalist is ready to be interviewed, or you may choose a different person and begin.</span>`;
+                    chatHeader.innerHTML = `<span>${SCENARIO_CONFIG.description} Interview the employees, and when you are done interviewing, be sure to download the transcript. You can change who you are interviewing by selecting their title from the choices. You can switch as many times as needed to gather the relevant information. The ${SCENARIO_CONFIG.characters[0].occupation.toLowerCase()} is ready to be interviewed, or you may choose a different person and begin.</span>`;
                 } else {
                     // Hide the header completely after first message
                     chatHeader.style.display = 'none';

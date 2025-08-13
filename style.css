@@ -25,10 +25,13 @@ overscroll-behavior: none;
 /* Use dynamic viewport height for mobile keyboard support */
 :root {
 --vh: 1vh;
+--keyboard-height: 0px; /* Will be updated by JS when keyboard shows */
 }
 
 main {
 height: 100vh;
+height: 100dvh; /* Dynamic viewport height */
+height: -webkit-fill-available; /* iOS specific */
 display: flex;
 flex-direction: column;
 }
@@ -37,8 +40,9 @@ flex-direction: column;
 .chat-interface {
 display: flex;
 flex-direction: column;
-height: calc(var(--vh, 1vh) * 100);
-height: 100dvh; /* Use dynamic viewport height as fallback */
+height: 100vh;
+height: 100dvh; /* Dynamic viewport height for better mobile support */
+height: -webkit-fill-available; /* iOS specific */
 position: relative;
 overflow: hidden;
 }
@@ -222,8 +226,9 @@ flex-direction: column;
 background: rgba(255, 255, 255, 0.95);
 backdrop-filter: blur(10px);
 min-width: 0;
-/* min-height removed to allow flexbox to handle shrinking naturally */
+min-height: 0; /* Important for flexbox shrinking */
 overflow: hidden;
+position: relative; /* For iOS keyboard handling */
 }
 
 .chat-header {
@@ -633,7 +638,7 @@ position: fixed;
 width: 100%;
 height: 100vh;
 height: 100dvh; /* Dynamic viewport height for better mobile support */
-height: calc(var(--vh, 1vh) * 100);
+height: -webkit-fill-available;
 margin: 0;
 padding: 0;
 /* iOS specific */
@@ -644,7 +649,7 @@ touch-action: manipulation;
 main {
 height: 100vh;
 height: 100dvh;
-height: calc(var(--vh, 1vh) * 100);
+height: -webkit-fill-available;
 overflow: hidden;
 display: flex;
 flex-direction: column;
@@ -653,10 +658,13 @@ position: relative;
 
 .chat-interface {
 height: 100%;
+height: calc(100vh - var(--keyboard-height));
+height: calc(100dvh - var(--keyboard-height));
 display: flex;
 flex-direction: column;
 overflow: hidden;
 position: relative;
+transition: height 0.3s ease;
 }
 
 .scenario-header {
@@ -733,6 +741,13 @@ display: flex;
 flex-direction: column;
 overflow: hidden;
 min-height: 0; /* Critical for proper flex behavior */
+position: relative;
+}
+
+/* Smooth transitions for keyboard appearance */
+.chat-area,
+.chat-messages {
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chat-header {
@@ -765,6 +780,10 @@ overflow-y: auto;
 -webkit-overflow-scrolling: touch;
 min-height: 0;
 scrollbar-width: thin;
+/* Optimize for mobile scrolling performance */
+will-change: scroll-position;
+-webkit-transform: translateZ(0);
+transform: translateZ(0);
 }
 
 .chat-message {
@@ -895,6 +914,39 @@ height: calc(var(--vh, 1vh) * 100);
 max-height: -webkit-fill-available;
 }
 
+/* Keyboard-visible states for better mobile handling */
+body.keyboard-visible .chat-interface,
+body.android-keyboard-visible .chat-interface,
+body.input-focused .chat-interface {
+height: 100vh; /* Use static viewport height when keyboard is visible */
+}
+
+body.keyboard-visible .chat-messages,
+body.android-keyboard-visible .chat-messages,
+body.input-focused .chat-messages {
+/* Allow messages area to shrink when keyboard appears */
+flex: 1 1 auto;
+min-height: 100px; /* Ensure minimum visibility */
+}
+
+body.keyboard-visible .chat-header,
+body.android-keyboard-visible .chat-header,
+body.input-focused .chat-header {
+/* Hide header when keyboard is visible to save space */
+display: none !important;
+}
+
+body.keyboard-visible .staff-panel,
+body.android-keyboard-visible .staff-panel,
+body.input-focused .staff-panel {
+/* Optionally hide staff panel when typing */
+max-height: 0;
+padding: 0;
+overflow: hidden;
+border: none;
+transition: all 0.3s ease;
+}
+
 /* Ensure chat area uses flexbox properly */
 .main-chat-container {
 flex: 1 1 0;
@@ -916,6 +968,8 @@ flex: 1 1 auto;
 min-height: 0;
 overflow-y: auto;
 -webkit-overflow-scrolling: touch;
+/* Smooth transition when keyboard appears/disappears */
+transition: flex 0.3s ease, min-height 0.3s ease;
 }
 
 /* Ensure input container is always visible */
@@ -926,6 +980,9 @@ z-index: 2000;
 background: white;
 /* Add safe area padding for devices with home indicator */
 padding-bottom: max(8px, env(safe-area-inset-bottom));
+/* Keep input at bottom when keyboard appears */
+position: sticky;
+bottom: 0;
 }
 
 .scenario-header {
@@ -1362,5 +1419,50 @@ transform: translateX(0);
     
     .form-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* iOS Safe Area and Keyboard Support */
+@supports (padding: max(0px)) {
+    .chat-interface {
+        /* Use environment variables for iOS keyboard handling */
+        padding-bottom: env(keyboard-inset-height, 0);
+    }
+    
+    .chat-input-container {
+        /* Ensure input stays above keyboard and home indicator */
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+        margin-bottom: env(keyboard-inset-height, 0);
+    }
+}
+
+/* iOS-specific viewport handling */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific styles */
+    .chat-interface {
+        height: -webkit-fill-available;
+    }
+    
+    /* When input is focused on iOS */
+    input:focus ~ * .chat-messages,
+    .chat-input:focus ~ * .chat-messages {
+        /* Messages area shrinks when keyboard appears */
+        max-height: calc(100vh - 250px);
+    }
+}
+
+/* Android-specific keyboard handling */
+@media screen and (max-width: 768px) {
+    /* Visual Viewport API support for modern browsers */
+    @supports (height: 100dvh) {
+        .chat-interface {
+            height: 100dvh;
+        }
+        
+        body.keyboard-visible .chat-interface,
+        body.android-keyboard-visible .chat-interface {
+            /* Use smaller viewport when keyboard is visible */
+            height: calc(100dvh - env(keyboard-inset-height, 0px));
+        }
     }
 }
